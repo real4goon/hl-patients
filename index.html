@@ -68,28 +68,70 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
 @media(max-width:760px){.table-wrap{display:none}.mobile-list{display:flex;flex-direction:column;gap:10px}.hero{gap:12px}.hero h1{font-size:22px;line-height:1.25}.hero-tools{width:100%;gap:6px}.hero-tools button,.hero-tools .chip{font-size:12px;padding:7px 9px}.guide{display:none}.tabs{position:sticky;top:0;z-index:20;margin-left:-2px;margin-right:-2px}.tab{font-size:13px;padding:9px 10px}.summary{grid-template-columns:repeat(2,1fr)!important}.sum{padding:10px}.sum-value{font-size:19px}.section-head{align-items:flex-start;flex-direction:column}.section-head>.row{width:100%}.section-head>.row button{flex:1}.filters{width:100%}.toolbar{gap:8px}.card{border-radius:13px;padding:12px}.mobile-card-grid{grid-template-columns:1fr 1fr}.modal-body{padding:13px}.modal-head,.modal-foot{padding:12px 13px}.form-grid{gap:9px}.login-card{padding:21px 18px;border-radius:16px}.login-card h2{font-size:20px}}
 @media(max-width:430px){.mobile-card-grid{grid-template-columns:1fr}.mobile-field.full{grid-column:auto}.summary{gap:7px}.hero-tools .chip{max-width:100%}.login-gate{padding:10px}}
 
+
+/* v0.8 직원계정 승인제 */
+.login-link{width:100%;margin-top:7px;background:transparent;color:#315b8a;border:1px solid #c9d7e7}
+.login-link:hover{background:#f1f6fc;transform:none}
+.register-success{margin-top:10px;padding:10px 11px;border-radius:10px;background:#eaf7f0;border:1px solid #b9dfc9;color:#17633f;font-size:12.5px;line-height:1.5}
+.bootstrap-box{margin-top:12px;padding:12px;border-radius:11px;background:#fff8e6;border:1px solid #ead28b;color:#6f5712}
+.bootstrap-box input{margin:8px 0}
+.user-admin-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.user-row{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(100px,.8fr) minmax(90px,.65fr) minmax(150px,1fr) auto;gap:9px;align-items:center;padding:10px 11px;border:1px solid #dde5ee;border-radius:11px;background:#fff}
+.user-name{font-weight:900;color:#20334c}.user-sub{font-size:11px;color:#7a8797;margin-top:2px}
+.user-status{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900}
+.us-pending{background:#fff3cd;color:#856404}.us-active{background:#e7f6ee;color:#17633f}.us-blocked{background:#fff0ee;color:#a12a22}.us-reset{background:#eef2f6;color:#526173}
+.user-actions{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}.user-actions button{padding:6px 8px;font-size:11px}
+@media(max-width:760px){.user-row{grid-template-columns:1fr 1fr}.user-actions{grid-column:1/-1;justify-content:flex-start}.user-actions button{flex:1}.bootstrap-box .secondary{width:100%}}
+
 </style>
 </head>
 <body class="app-locked">
 <div class="login-gate" id="loginGate">
   <div class="login-card">
     <div class="login-mark">H</div>
-    <h2>원무팀 공유시스템 로그인</h2>
-    <p>본인 이름을 사용자 ID로 사용합니다. 로그인 전에는 환자·VIP 목록을 표시하지 않습니다.</p>
-    <label>사용자 ID <span class="small">(본인 이름)</span></label>
-    <input id="loginName" autocomplete="username" placeholder="예: 김영선 또는 김영선(입원계)">
-    <label>공용 접속 비밀번호</label>
-    <input id="loginPassword" type="password" autocomplete="current-password" placeholder="접속 비밀번호" onkeydown="if(event.key==='Enter')submitLoginGate()">
-    <button class="primary" id="loginButton" onclick="submitLoginGate()">로그인</button>
-    <div class="login-error" id="loginError"></div>
-    <div class="login-help">수정·종결·삭제·복원·백업·서버설정은 로그인 후에도 <b>마스터 인증</b>이 추가로 필요합니다.</div>
+
+    <div id="loginPanel">
+      <h2>원무팀 공유시스템 로그인</h2>
+      <p>사용자 ID는 본인 이름입니다. 승인된 직원만 환자·VIP 목록을 볼 수 있습니다.</p>
+      <label>사용자 ID <span class="small">(본인 이름)</span></label>
+      <input id="loginName" autocomplete="username" placeholder="예: 김영선">
+      <label>개인 PIN <span class="small">(숫자 6자리)</span></label>
+      <input id="loginPassword" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" placeholder="●●●●●●" onkeydown="if(event.key==='Enter')submitLoginGate()">
+      <button class="primary" id="loginButton" onclick="submitLoginGate()">로그인</button>
+      <button class="login-link" type="button" onclick="showRegisterPanel()">처음 사용 / PIN 재등록</button>
+      <div class="login-error" id="loginError"></div>
+      <div class="login-help">신규 직원은 본인이 PIN을 정해 등록한 뒤 <b>관리자 승인</b>을 받아야 로그인할 수 있습니다.</div>
+    </div>
+
+    <div id="registerPanel" class="hidden">
+      <h2>사용자 등록</h2>
+      <p>본인이 사용할 PIN을 직접 설정합니다. PIN 원문은 관리자 화면에 표시되지 않습니다.</p>
+      <label>사용자 ID <span class="small">(본인 이름)</span></label>
+      <input id="regUserId" autocomplete="username" placeholder="예: 김영선">
+      <label>소속 / 근무구분</label>
+      <input id="regUnit" placeholder="예: 입원계 / 응급원무">
+      <label>개인 PIN <span class="small">(숫자 6자리)</span></label>
+      <input id="regPin" type="password" inputmode="numeric" maxlength="6" placeholder="●●●●●●">
+      <label>PIN 확인</label>
+      <input id="regPin2" type="password" inputmode="numeric" maxlength="6" placeholder="●●●●●●" onkeydown="if(event.key==='Enter')submitRegistration()">
+      <button class="primary" id="registerButton" onclick="submitRegistration()">등록 신청</button>
+      <button class="login-link" type="button" onclick="showLoginPanel()">로그인으로 돌아가기</button>
+      <div class="login-error" id="registerError"></div>
+      <div class="register-success hidden" id="registerSuccess"></div>
+      <div class="bootstrap-box hidden" id="bootstrapBox">
+        <b>최초 사용자만</b>
+        <div class="small" style="margin:5px 0 8px">아직 승인된 사용자가 없습니다. 마스터 비밀번호로 첫 사용자를 활성화할 수 있습니다.</div>
+        <input id="bootstrapMaster" type="password" placeholder="초기 마스터 비밀번호">
+        <button class="secondary" onclick="submitBootstrapApproval()">최초 사용자 승인</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <div class="wrap">
   <div class="hero">
     <div>
-      <h1>원무팀 문제환자 · VIP 공유 <span class="version">v0.7 · 로그인·모바일 개선</span></h1>
+      <h1>원무팀 문제환자 · VIP 공유 <span class="version">v0.8 · 직원계정 승인제</span></h1>
       <div class="sub">야간·휴일·공휴일 근무자가 여러 PC에서 동일한 문제환자·VIP 데이터를 실시간 공유합니다.</div>
     </div>
     <div class="hero-tools">
@@ -112,7 +154,7 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
   <div class="guide" id="mainGuide">
     <div class="guide-grid">
       <div class="guide-item"><b>① 등록은 팝업</b>목록 화면을 유지하면서 필요한 경우에만 신규 입력창을 엽니다.</div>
-      <div class="guide-item"><b>② 수정·삭제는 마스터 권한</b>기존 자료 변경, 삭제, 종결·복원은 마스터 비밀번호 확인 후 가능합니다.</div>
+      <div class="guide-item"><b>② 직원계정 승인제</b>직원이 이름과 개인 PIN을 직접 등록하고 관리자 승인 후 로그인합니다.</div>
       <div class="guide-item"><b>③ 공용 저장 · 서버 백업</b>GitHub는 화면만 담당하고, 실제 환자자료와 00:00 기준 백업은 공용 서버에 저장합니다.</div>
     </div>
   </div>
@@ -214,7 +256,7 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
 
   <section id="tab-admin" class="tab-page hidden">
     <div class="card">
-      <div class="section-head"><div><h2>관리자</h2><div class="caption">공용 서버 연결, 접근권한, 백업·복원, 데이터 이관을 관리합니다.</div></div></div>
+      <div class="section-head"><div><h2>관리자</h2><div class="caption">직원계정 승인, 마스터 권한, 공용 백업·복원, 서버 설정을 관리합니다.</div></div></div>
       <div class="admin-grid">
         <div class="admin-box server-box">
           <h3>① 공용 서버 연결</h3>
@@ -226,29 +268,36 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
           <div class="row" style="margin-top:10px"><button class="primary" onclick="saveConnectionSettings()">서버주소 저장 · 연결</button><button class="secondary" onclick="testConnection()">서버 테스트</button></div>
           <div class="small" id="serverState" style="margin-top:9px">연결 상태 확인 중</div>
         </div>
+        <div class="admin-box full-admin">
+          <h3>② 직원 계정 관리</h3>
+          <p>직원이 직접 등록한 계정을 승인·중지·PIN 초기화할 수 있습니다. 직원의 PIN 원문은 관리자에게도 표시되지 않습니다.</p>
+          <div class="row"><button class="primary" onclick="refreshUsers()">사용자 목록 새로고침</button></div>
+          <div id="userAdminSummary" class="small" style="margin-top:9px"></div>
+          <div id="userAdminList" class="user-admin-list"></div>
+        </div>
         <div class="admin-box">
-          <h3>② 권한 관리</h3>
-          <p><b>접속 비밀번호</b>는 자료 열람·신규 등록에 필요하고, <b>마스터 비밀번호</b>는 수정·삭제·종결·복원·백업관리에 추가로 필요합니다.</p>
-          <div class="row"><button class="primary" onclick="unlockMaster()">마스터 권한 열기</button><button class="secondary" onclick="lockMaster()">즉시 잠금</button></div>
+          <h3>③ 마스터 권한 · 보안</h3>
+          <p>수정·삭제·종결·복원·사용자관리·백업은 마스터 권한에서만 가능합니다.</p>
+          <div class="row"><button class="secondary" onclick="lockMaster()">마스터 즉시 잠금</button><button class="secondary" onclick="changeMasterPassword()">마스터 비밀번호 변경</button></div>
           <div class="small" id="masterState" style="margin-top:9px">현재 잠김</div>
-          <div class="row" style="margin-top:10px"><button class="secondary" onclick="changeAccessPassword()">접속 비밀번호 변경</button><button class="secondary" onclick="changeMasterPassword()">마스터 비밀번호 변경</button></div>
-          <div class="small" style="margin-top:8px">초기 테스트값은 접속/마스터 모두 <b>1234</b>입니다. 공용 서버 연결 직후 각각 6자 이상으로 변경하세요.</div>
+          <div class="row" style="margin-top:10px"><button class="danger" onclick="revokeAllUserSessions()">전체 직원 세션 만료</button></div>
+          <div class="small" style="margin-top:8px">초기 마스터 비밀번호는 <b>1234</b>입니다. 첫 사용자 활성화 후 6자 이상으로 변경하세요.</div>
         </div>
         <div class="admin-box full-admin">
-          <h3>③ 공용 백업 · 복원 센터</h3>
+          <h3>④ 공용 백업 · 복원 센터</h3>
           <p>공용 서버가 매일 <b>00:00 기준 상태</b>를 최근 30일 보관합니다. 수동 안전백업도 별도로 생성할 수 있으며, 마스터 권한으로 다운로드·전체 복원이 가능합니다.</p>
           <div class="row"><button class="primary" onclick="refreshBackupUI()">백업 목록 새로고침</button><button class="secondary" onclick="createManualBackup()">현재 상태 안전백업</button><button class="secondary" onclick="exportJSON()">현재 목록 JSON 저장</button><button class="secondary" onclick="document.getElementById('importFile').click()">JSON 가져오기</button><input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(event)"></div>
           <div id="dailyBackupSummary" class="small" style="margin-top:9px"></div>
           <div id="dailyBackupList" class="backup-list"></div>
         </div>
         <div class="admin-box">
-          <h3>④ 기존 v0.4 자료 서버 이관</h3>
+          <h3>⑤ 기존 v0.4 자료 서버 이관</h3>
           <p>이 PC 브라우저에 저장돼 있던 기존 문제환자/VIP 자료를 공용 서버로 한 번에 옮깁니다. 서버 이관 전 자동으로 안전백업을 만듭니다.</p>
           <div class="small" id="localMigrationInfo" style="margin-bottom:9px"></div>
           <button class="secondary" onclick="migrateLocalToServer()">이 PC 로컬자료 → 공용서버</button>
         </div>
         <div class="admin-box">
-          <h3>⑤ 엑셀용 내보내기</h3>
+          <h3>⑥ 엑셀용 내보내기</h3>
           <p>현재 서버에서 불러온 문제환자, VIP, 종결보관함을 각각 CSV로 저장합니다.</p>
           <div class="row"><button class="secondary" onclick="exportCSV('problem')">문제환자 CSV</button><button class="secondary" onclick="exportCSV('vip')">VIP CSV</button><button class="secondary" onclick="exportCSV('archive')">종결 CSV</button></div>
         </div>
@@ -269,14 +318,15 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
 </div>
 
 <script>
-const APP_VERSION='0.7';
+const APP_VERSION='0.8';
 const DEFAULT_API_URL='https://script.google.com/macros/s/AKfycbz_m7rRSLvBELNzdGe3u5FLpyF0e0Xj3F2-SrPCz8fCmE2aCY99OdECmhcOrMRNLV76JQ/exec'; // 공용 Apps Script 서버
 const API_URL_KEY='hospitalAdminShare_apiUrl_v06';
-const OPERATOR_KEY='hospitalAdminShare_operator_v07';
-const ACCESS_TOKEN_KEY='hospitalAdminShare_accessToken_v07';
-const ACCESS_EXP_KEY='hospitalAdminShare_accessExp_v07';
-const MASTER_TOKEN_KEY='hospitalAdminShare_masterToken_v07';
-const MASTER_EXP_KEY='hospitalAdminShare_masterExp_v07';
+const USER_ID_KEY='hospitalAdminShare_userId_v08';
+const USER_PROFILE_KEY='hospitalAdminShare_userProfile_v08';
+const ACCESS_TOKEN_KEY='hospitalAdminShare_accessToken_v08';
+const ACCESS_EXP_KEY='hospitalAdminShare_accessExp_v08';
+const MASTER_TOKEN_KEY='hospitalAdminShare_masterToken_v08';
+const MASTER_EXP_KEY='hospitalAdminShare_masterExp_v08';
 const LOCAL_STORE_KEY='hospitalAdminShare_v02';
 const OLD_STORE_KEY='hospitalProblemPatientShare_v01';
 const LOCAL_PASS_KEY='hospitalAdminShare_masterHash_v02';
@@ -297,6 +347,8 @@ let backupCache=[];
 let lastServerTime='';
 let loginPromise=null;
 let loginResolve=null;
+let currentUser=null;
+let userCache=[];
 
 const DEMO_DATA={records:[
   {id:'demo-p1',kind:'problem',name:'홍길동',reg:'012345678',ward:'10병동 1001호',doctor:'김OO 교수',dept:'GI',problemType:'재정',owner:'원무팀 김OO',finalResolver:'',issue:'고액 진료비 미수 관련 보호자와 분납 협의 중.',plan:'퇴원 또는 사망 발생 시 원무팀 담당자에게 먼저 연락 후 수납·서류 절차 진행.',other:'야간 보호자 방문 가능성 있음.',createdAt:'2026-09-01T09:00:00+09:00',updatedAt:'2026-09-01T13:00:00+09:00',closedAt:'',version:1,updatedBy:''},
@@ -314,15 +366,19 @@ function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function escAttr(s){return esc(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 function fmt(dt){if(!dt)return '-';const d=new Date(dt);if(Number.isNaN(d.getTime()))return String(dt);return d.toLocaleString('ko-KR',{year:'2-digit',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})}
 function localDateKey(dt){if(!dt)return '';const d=new Date(dt);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function operatorName(){return (localStorage.getItem(OPERATOR_KEY)||'').trim()}
+function rememberedUserId(){return (localStorage.getItem(USER_ID_KEY)||'').trim()}
+function userLabel(u=currentUser){if(!u)return rememberedUserId();return (u.name||u.userId||'')+(u.unit?`(${u.unit})`:'')}
+function operatorName(){return userLabel()}
 function getApiUrl(){return (localStorage.getItem(API_URL_KEY)||DEFAULT_API_URL||'').trim()}
 function isRemoteMode(){return /^https:\/\/script\.google\.com\/.+\/exec(?:\?.*)?$/.test(getApiUrl()) || /^https:\/\/script\.googleusercontent\.com\//.test(getApiUrl())}
 function tokenValid(expKey){return new Date(sessionStorage.getItem(expKey)||0).getTime()>Date.now()+5000}
 function accessToken(){return tokenValid(ACCESS_EXP_KEY)?(sessionStorage.getItem(ACCESS_TOKEN_KEY)||''):''}
 function masterToken(){return tokenValid(MASTER_EXP_KEY)?(sessionStorage.getItem(MASTER_TOKEN_KEY)||''):''}
-function clearAccess(){sessionStorage.removeItem(ACCESS_TOKEN_KEY);sessionStorage.removeItem(ACCESS_EXP_KEY);clearMaster()}
+function clearAccess(){sessionStorage.removeItem(ACCESS_TOKEN_KEY);sessionStorage.removeItem(ACCESS_EXP_KEY);sessionStorage.removeItem(USER_PROFILE_KEY);currentUser=null;clearMaster()}
 function clearMaster(){sessionStorage.removeItem(MASTER_TOKEN_KEY);sessionStorage.removeItem(MASTER_EXP_KEY);updateAuthUI()}
 function saveToken(key,expKey,token,expiresAt){sessionStorage.setItem(key,token||'');sessionStorage.setItem(expKey,expiresAt||'')}
+function saveCurrentUser(u){currentUser=u||null;if(u){sessionStorage.setItem(USER_PROFILE_KEY,JSON.stringify(u));localStorage.setItem(USER_ID_KEY,u.userId||u.name||'')}else sessionStorage.removeItem(USER_PROFILE_KEY)}
+function restoreCurrentUser(){try{currentUser=JSON.parse(sessionStorage.getItem(USER_PROFILE_KEY)||'null')}catch(e){currentUser=null}return currentUser}
 
 const pendingBridge=new Map();
 window.addEventListener('message',function(ev){
@@ -348,31 +404,66 @@ function apiRaw(action,payload={},access='',master=''){
 
 async function loginSharedSystem(force=false){
   if(!isRemoteMode()){alert('공용 서버 주소가 설정되지 않았습니다.');return false}
-  if(!force && accessToken() && operatorName()){hideLoginGate();return true}
+  if(!force && accessToken() && restoreCurrentUser()){hideLoginGate();return true}
   return showLoginGate();
+}
+function showLoginPanel(){
+  byId('loginPanel').classList.remove('hidden');byId('registerPanel').classList.add('hidden');
+  byId('loginName').value=rememberedUserId();byId('loginPassword').value='';byId('loginError').textContent='';
+  setTimeout(()=>{(byId('loginName').value?byId('loginPassword'):byId('loginName')).focus()},30);
+}
+function showRegisterPanel(){
+  byId('loginPanel').classList.add('hidden');byId('registerPanel').classList.remove('hidden');
+  byId('regUserId').value=rememberedUserId();byId('regUnit').value='';byId('regPin').value='';byId('regPin2').value='';
+  byId('registerError').textContent='';byId('registerSuccess').classList.add('hidden');byId('bootstrapBox').classList.add('hidden');
+  setTimeout(()=>byId('regUserId').focus(),30);
 }
 function showLoginGate(message=''){
   const gate=byId('loginGate');if(!gate)return Promise.resolve(false);
-  document.body.classList.add('app-locked');gate.classList.remove('hidden');
-  byId('loginName').value=operatorName();byId('loginPassword').value='';byId('loginError').textContent=message;
-  setTimeout(()=>{(byId('loginName').value?byId('loginPassword'):byId('loginName')).focus()},30);
+  document.body.classList.add('app-locked');gate.classList.remove('hidden');showLoginPanel();byId('loginError').textContent=message;
   if(loginPromise)return loginPromise;
   loginPromise=new Promise(resolve=>{loginResolve=resolve});return loginPromise;
 }
 function hideLoginGate(){const gate=byId('loginGate');if(gate)gate.classList.add('hidden');document.body.classList.remove('app-locked')}
 async function submitLoginGate(){
-  const name=(byId('loginName').value||'').trim(),pw=byId('loginPassword').value||'',err=byId('loginError'),btn=byId('loginButton');
-  if(!name){err.textContent='사용자 ID(본인 이름)를 입력해 주세요.';byId('loginName').focus();return}
-  if(!pw){err.textContent='공용 접속 비밀번호를 입력해 주세요.';byId('loginPassword').focus();return}
+  const userId=(byId('loginName').value||'').trim(),pin=byId('loginPassword').value||'',err=byId('loginError'),btn=byId('loginButton');
+  if(!userId){err.textContent='사용자 ID(본인 이름)를 입력해 주세요.';byId('loginName').focus();return}
+  if(!/^\d{6}$/.test(pin)){err.textContent='개인 PIN 숫자 6자리를 입력해 주세요.';byId('loginPassword').focus();return}
   try{
-    btn.disabled=true;btn.textContent='로그인 중…';err.textContent='';setSyncState('busy','접속 인증 중');
-    const res=await apiRaw('login',{password:pw},'','');
-    localStorage.setItem(OPERATOR_KEY,name);saveToken(ACCESS_TOKEN_KEY,ACCESS_EXP_KEY,res.accessToken,res.expiresAt);
+    btn.disabled=true;btn.textContent='로그인 중…';err.textContent='';setSyncState('busy','직원 인증 중');
+    const res=await apiRaw('login',{userId,pin},'','');
+    saveCurrentUser(res.user);saveToken(ACCESS_TOKEN_KEY,ACCESS_EXP_KEY,res.accessToken,res.expiresAt);
     cacheRecords=(res.records||[]).map(normalizeRecord);remoteConnected=true;lastServerTime=res.serverTime||'';
     setSyncState('ok','공용 서버 연결');hideLoginGate();renderAll();updateConnectionUI();updateAuthUI();startAutoRefresh();
     const resolve=loginResolve;loginResolve=null;loginPromise=null;if(resolve)resolve(true);
   }catch(e){remoteConnected=false;setSyncState('bad','인증 실패');err.textContent=apiErrorText(e);byId('loginPassword').select()}
   finally{btn.disabled=false;btn.textContent='로그인'}
+}
+async function submitRegistration(){
+  const userId=(byId('regUserId').value||'').trim(),unit=(byId('regUnit').value||'').trim();
+  const pin=byId('regPin').value||'',pin2=byId('regPin2').value||'',err=byId('registerError'),btn=byId('registerButton'),ok=byId('registerSuccess');
+  err.textContent='';ok.classList.add('hidden');byId('bootstrapBox').classList.add('hidden');
+  if(userId.length<2){err.textContent='사용자 ID(본인 이름)를 입력해 주세요.';return}
+  if(!/^\d{6}$/.test(pin)){err.textContent='개인 PIN은 숫자 6자리로 설정해 주세요.';return}
+  if(pin!==pin2){err.textContent='PIN 확인이 일치하지 않습니다.';return}
+  try{
+    btn.disabled=true;btn.textContent='등록 중…';
+    const res=await apiRaw('registerUser',{userId,unit,pin},'','');
+    localStorage.setItem(USER_ID_KEY,userId);
+    ok.textContent='등록 신청이 완료되었습니다. 관리자가 승인하면 로그인할 수 있습니다.';ok.classList.remove('hidden');
+    if(res.bootstrapAvailable){byId('bootstrapBox').classList.remove('hidden');byId('bootstrapMaster').value=''}
+  }catch(e){err.textContent=apiErrorText(e)}
+  finally{btn.disabled=false;btn.textContent='등록 신청'}
+}
+async function submitBootstrapApproval(){
+  const userId=(byId('regUserId').value||'').trim(),masterPassword=byId('bootstrapMaster').value||'',err=byId('registerError');
+  if(!masterPassword){err.textContent='마스터 비밀번호를 입력해 주세요.';return}
+  try{
+    await apiRaw('bootstrapApprove',{userId,masterPassword},'','');
+    byId('registerSuccess').textContent='첫 사용자 승인이 완료되었습니다. 로그인 화면에서 개인 PIN으로 로그인하세요.';
+    byId('registerSuccess').classList.remove('hidden');byId('bootstrapBox').classList.add('hidden');
+    setTimeout(()=>{showLoginPanel();byId('loginName').value=userId},600);
+  }catch(e){err.textContent=apiErrorText(e)}
 }
 async function ensureMaster(){
   if(!isRemoteMode())return localRequireMaster();
@@ -402,7 +493,7 @@ function setSyncState(mode,text){
   const s=byId('serverState');if(s)s.textContent=text+(lastServerTime?` · 서버 ${fmt(lastServerTime)}`:'');
 }
 function updateConnectionUI(){
-  const u=byId('apiUrlInput');if(u)u.value=getApiUrl();const o=byId('operatorInput');if(o)o.value=operatorName();
+  const u=byId('apiUrlInput');if(u)u.value=getApiUrl();const o=byId('operatorInput');if(o)o.value=userLabel();
   if(isRemoteMode())setSyncState(remoteConnected?'ok':'busy',remoteConnected?'공용 서버 연결':'공용 서버 설정됨');else setSyncState('local','로컬 테스트 모드');
   const mig=byId('localMigrationInfo');if(mig){const n=loadLocalData().records.length;mig.textContent=`현재 브라우저 로컬 자료 ${n}건 감지`}
 }
@@ -415,14 +506,14 @@ async function saveConnectionSettings(){
 }
 async function testConnection(){
   if(!isRemoteMode()){alert('공용 서버 주소를 먼저 설정해 주세요.');return false}
-  try{setSyncState('busy','서버 확인 중');const res=await apiRaw('ping');if(!res.initialized)throw new Error('백엔드에서 setupSystem()이 아직 실행되지 않았습니다.');setSyncState('ok',`서버 v${res.version} 응답 정상`);alert(`연결 정상 · 백엔드 v${res.version}`);return true}catch(e){setSyncState('bad','서버 연결 실패');alert(apiErrorText(e));return false}
+  try{setSyncState('busy','서버 확인 중');const res=await apiRaw('ping');if(!res.initialized)throw new Error('백엔드에서 setupSystem()이 아직 실행되지 않았습니다.');if(String(res.version)!=='0.8')throw new Error(`백엔드 v0.8 재배포가 필요합니다. 현재 v${res.version}`);setSyncState('ok',`서버 v${res.version} 응답 정상`);alert(`연결 정상 · 백엔드 v${res.version}`);return true}catch(e){setSyncState('bad','서버 연결 실패');alert(apiErrorText(e));return false}
 }
 async function logoutSharedSystem(){clearAccess();cacheRecords=[];remoteConnected=false;currentTab='problem';setSyncState('busy','로그아웃됨');renderAll();updateAuthUI();showLoginGate('로그아웃되었습니다. 다시 로그인해 주세요.');}
 function startAutoRefresh(){if(refreshTimer)clearInterval(refreshTimer);if(isRemoteMode())refreshTimer=setInterval(()=>{updateAuthUI();if(accessToken()&&!modalMode)refreshFromServer(true)},45000)}
 async function refreshFromServer(silent=false){
   if(!isRemoteMode()){loadCacheFromLocal();renderAll();return}
   if(!accessToken()){if(!silent)await loginSharedSystem();return}
-  try{if(!silent)setSyncState('busy','동기화 중');const res=await callApi('listRecords');cacheRecords=(res.records||[]).map(normalizeRecord);lastServerTime=res.serverTime||'';remoteConnected=true;setSyncState('ok','공용 서버 연결');renderAll()}
+  try{if(!silent)setSyncState('busy','동기화 중');const res=await callApi('listRecords');if(res.user)saveCurrentUser(res.user);cacheRecords=(res.records||[]).map(normalizeRecord);lastServerTime=res.serverTime||'';remoteConnected=true;setSyncState('ok','공용 서버 연결');renderAll()}
   catch(e){remoteConnected=false;setSyncState('bad','동기화 실패');if(!silent)alert(apiErrorText(e))}
 }
 
@@ -458,8 +549,8 @@ function updateAuthUI(){
   if(!unlocked && currentTab==='admin')activateTabDom('problem');
 }
 function activateTabDom(tab){currentTab=tab;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));document.querySelectorAll('.tab-page').forEach(x=>x.classList.add('hidden'));const page=byId('tab-'+tab);if(page)page.classList.remove('hidden')}
-async function openAdminArea(){if(!(await ensureMaster()))return;updateAuthUI();activateTabDom('admin');updateConnectionUI();renderBackupUIBase();renderAll()}
-async function switchTab(tab){if(tab==='admin'){if(!(isRemoteMode()?masterToken():localUnlocked())){await openAdminArea();return}}activateTabDom(tab);renderAll();if(tab==='admin'){updateConnectionUI();renderBackupUIBase()}}
+async function openAdminArea(){if(!(await ensureMaster()))return;updateAuthUI();activateTabDom('admin');updateConnectionUI();renderBackupUIBase();renderAll();refreshUsers()}
+async function switchTab(tab){if(tab==='admin'){if(!(isRemoteMode()?masterToken():localUnlocked())){await openAdminArea();return}}activateTabDom(tab);renderAll();if(tab==='admin'){updateConnectionUI();renderBackupUIBase();refreshUsers()}}
 function typeClass(v){return v==='재정'?'t-fin':v==='분쟁'?'t-dispute':'t-other'}
 function fillSelect(id,values,firstLabel){const el=byId(id);if(!el)return;const cur=el.value;el.innerHTML=`<option value="">${firstLabel}</option>`+values.map(v=>`<option value="${escAttr(v)}">${esc(v)}</option>`).join('');el.value=values.includes(cur)?cur:''}
 function problemVisible(){const q=byId('pSearch').value.trim().toLowerCase(),type=byId('pTypeFilter').value,dept=byId('pDeptFilter').value;return activeProblem().filter(r=>{if(type&&r.problemType!==type)return false;if(dept&&r.dept!==dept)return false;const hay=`${r.name} ${r.reg} ${r.ward} ${r.doctor} ${r.dept} ${r.problemType} ${r.issue} ${r.plan} ${r.other} ${r.owner}`.toLowerCase();return !q||hay.includes(q)}).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))}
@@ -548,7 +639,22 @@ function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.
 function exportJSON(){downloadBlob(new Blob([JSON.stringify({exportedAt:nowISO(),mode:isRemoteMode()?'remote':'local',records:records()},null,2)],{type:'application/json'}),`원무팀_문제환자_VIP_백업_${dateStamp()}.json`)}
 async function importJSON(ev){const file=ev.target.files[0];if(!file)return;try{const text=await file.text();const d=JSON.parse(text);const list=(Array.isArray(d)?d:(d&&Array.isArray(d.records)?d.records:null));if(!list)throw new Error('지원하지 않는 백업 형식입니다.');let mode='replace';if(!confirm(`${list.length}건을 서버/현재 목록에 덮어쓸까요?\n[확인] 덮어쓰기 / [취소] 다음 선택`)){if(confirm('기존 자료에 추가로 가져올까요?'))mode='append';else return}if(isRemoteMode()){if(!(await requireMaster()))return;await callApi('importRecords',{records:list,mode},true);await refreshFromServer();alert('공용 서버로 가져오기 완료')}else{const merged=mode==='append'?records().concat(list):list;cacheRecords=merged.map(normalizeRecord);saveLocalData({records:cacheRecords});localEnsureDailyBackup();renderAll();alert('로컬 가져오기 완료')}}catch(e){if(e.code!=='CANCEL')alert('백업 파일을 읽을 수 없습니다: '+apiErrorText(e))}finally{ev.target.value=''}}
 function exportCSV(kind){let rows,name;if(kind==='problem'){rows=[['환자명','등록번호','병실','담당교수','진료과','문제유형','문제내용','퇴원·사망 대응','기타','담당자','최근수정'],...activeProblem().map(r=>[r.name,r.reg,r.ward,r.doctor,r.dept,r.problemType,r.issue,r.plan,r.other,r.owner,fmt(r.updatedAt)])];name='문제환자'}else if(kind==='vip'){rows=[['환자명','등록번호','병실','담당교수','진료과','VIP구분','요청사항','주의·대응사항','기타','담당자','최근수정'],...activeVip().map(r=>[r.name,r.reg,r.ward,r.doctor,r.dept,r.vipClass,r.request,r.caution,r.other,r.owner,fmt(r.updatedAt)])];name='VIP'}else{rows=[['구분','환자명','등록번호','병실','진료과','주요내용','대응·주의사항','담당자','최종 해결자','종결일'],...archived().map(r=>[r.kind==='problem'?'문제환자':'VIP',r.name,r.reg,r.ward,r.dept,r.kind==='problem'?r.issue:r.request,r.kind==='problem'?r.plan:r.caution,r.owner,r.finalResolver,fmt(r.closedAt)])];name='종결보관함'}const csv='\ufeff'+rows.map(row=>row.map(csvCell).join(',')).join('\r\n');downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),`${name}_${dateStamp()}.csv`)}
-function printCurrent(kind){const items=kind==='problem'?problemVisible():(kind==='vip'?vipVisible():archiveVisible());if(!items.length){alert('인쇄할 자료가 없습니다.');return}const title=kind==='problem'?'문제환자 공유 현황':kind==='vip'?'VIP 관리 현황':'종결보관함';const rows=items.map((r,i)=>{const k=r.kind==='problem'?'문제환자':'VIP',type=r.kind==='problem'?(r.problemType||'기타'):(r.vipClass||'기타'),main=r.kind==='problem'?r.issue:r.request,plan=r.kind==='problem'?r.plan:r.caution;return `<tr><td>${i+1}</td>${kind==='archive'?`<td>${k}</td>`:''}<td><b>${esc(r.name)}</b><br><span>${esc(r.reg)}</span></td><td>${esc(r.ward||'-')}</td><td>${esc(r.doctor||'-')}</td><td>${esc(r.dept||'-')}</td><td>${esc(type)}</td><td>${esc(main||'-')}</td><td>${esc(plan||'-')}</td><td>${esc(r.other||'-')}</td><td>${esc(r.owner||'-')}</td>${kind==='archive'?`<td>${esc(r.finalResolver||'-')}</td><td>${fmt(r.closedAt)}</td>`:''}</tr>`}).join('');const head=kind==='archive'?'<th>No.</th><th>구분</th><th>환자/등록번호</th><th>병실</th><th>교수</th><th>과</th><th>유형</th><th>주요 내용</th><th>대응·주의</th><th>기타</th><th>담당자</th><th>최종 해결자</th><th>종결일</th>':'<th>No.</th><th>환자/등록번호</th><th>병실</th><th>교수</th><th>과</th><th>유형</th><th>주요 내용</th><th>대응·주의</th><th>기타</th><th>담당자</th>';const w=window.open('','_blank');w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${title}</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,"맑은 고딕",sans-serif;color:#172033;margin:0}h1{font-size:17px;margin:0 0 3px}.sub{font-size:8.5px;color:#667085;margin-bottom:9px}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #dfe5ed;padding:4px 5px;vertical-align:top;font-size:7px;line-height:1.32;word-break:keep-all;overflow-wrap:anywhere}th{background:#f5f7fa;color:#596579;text-align:left}td span{color:#7d8999;font-size:6.5px}</style></head><body><h1>${title}</h1><div class="sub">출력 ${new Date().toLocaleString('ko-KR')} · 현재 필터 결과 ${items.length}명</div><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></body></html>`);w.document.close();setTimeout(()=>w.print(),250)}
+function printCurrent(kind){const items=kind==='problem'?problemVisible():(kind==='vip'?vipVisible():archiveVisible());if(!items.length){alert('인쇄할 자료가 없습니다.');return}const title=kind==='problem'?'문제환자 공유 현황':kind==='vip'?'VIP 관리 현황':'종결보관함';const rows=items.map((r,i)=>{const k=r.kind==='problem'?'문제환자':'VIP',type=r.kind==='problem'?(r.problemType||'기타'):(r.vipClass||'기타'),main=r.kind==='problem'?r.issue:r.request,plan=r.kind==='problem'?r.plan:r.caution;return `<tr><td>${i+1}</td>${kind==='archive'?`<td>${k}</td>`:''}<td><b>${esc(r.name)}</b><br><span>${esc(r.reg)}</span></td><td>${esc(r.ward||'-')}</td><td>${esc(r.doctor||'-')}</td><td>${esc(r.dept||'-')}</td><td>${esc(type)}</td><td>${esc(main||'-')}</td><td>${esc(plan||'-')}</td><td>${esc(r.other||'-')}</td><td>${esc(r.owner||'-')}</td>${kind==='archive'?`<td>${esc(r.finalResolver||'-')}</td><td>${fmt(r.closedAt)}</td>`:''}</tr>`}).join('');const head=kind==='archive'?'<th>No.</th><th>구분</th><th>환자/등록번호</th><th>병실</th><th>교수</th><th>과</th><th>유형</th><th>주요 내용</th><th>대응·주의</th><th>기타</th><th>담당자</th><th>최종 해결자</th><th>종결일</th>':'<th>No.</th><th>환자/등록번호</th><th>병실</th><th>교수</th><th>과</th><th>유형</th><th>주요 내용</th><th>대응·주의</th><th>기타</th><th>담당자</th>';const w=window.open('','_blank');w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${title}</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,"맑은 고딕",sans-serif;color:#172033;margin:0}h1{font-size:17px;margin:0 0 3px}.sub{font-size:8.5px;color:#667085;margin-bottom:9px}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #dfe5ed;padding:4px 5px;vertical-align:top;font-size:7px;line-height:1.32;word-break:keep-all;overflow-wrap:anywhere}th{background:#f5f7fa;color:#596579;text-align:left}td span{color:#7d8999;font-size:6.5px}
+/* v0.8 직원계정 승인제 */
+.login-link{width:100%;margin-top:7px;background:transparent;color:#315b8a;border:1px solid #c9d7e7}
+.login-link:hover{background:#f1f6fc;transform:none}
+.register-success{margin-top:10px;padding:10px 11px;border-radius:10px;background:#eaf7f0;border:1px solid #b9dfc9;color:#17633f;font-size:12.5px;line-height:1.5}
+.bootstrap-box{margin-top:12px;padding:12px;border-radius:11px;background:#fff8e6;border:1px solid #ead28b;color:#6f5712}
+.bootstrap-box input{margin:8px 0}
+.user-admin-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.user-row{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(100px,.8fr) minmax(90px,.65fr) minmax(150px,1fr) auto;gap:9px;align-items:center;padding:10px 11px;border:1px solid #dde5ee;border-radius:11px;background:#fff}
+.user-name{font-weight:900;color:#20334c}.user-sub{font-size:11px;color:#7a8797;margin-top:2px}
+.user-status{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900}
+.us-pending{background:#fff3cd;color:#856404}.us-active{background:#e7f6ee;color:#17633f}.us-blocked{background:#fff0ee;color:#a12a22}.us-reset{background:#eef2f6;color:#526173}
+.user-actions{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}.user-actions button{padding:6px 8px;font-size:11px}
+@media(max-width:760px){.user-row{grid-template-columns:1fr 1fr}.user-actions{grid-column:1/-1;justify-content:flex-start}.user-actions button{flex:1}.bootstrap-box .secondary{width:100%}}
+
+</style></head><body><h1>${title}</h1><div class="sub">출력 ${new Date().toLocaleString('ko-KR')} · 현재 필터 결과 ${items.length}명</div><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></body></html>`);w.document.close();setTimeout(()=>w.print(),250)}
 
 function renderBackupUIBase(){const host=byId('dailyBackupList'),sum=byId('dailyBackupSummary');if(!host||!sum)return;if(isRemoteMode()){sum.textContent=masterToken()?'공용 서버 백업 목록을 불러오세요.':'백업 조회·복원은 마스터 권한이 필요합니다.';host.innerHTML='<div class="backup-empty">마스터 권한을 연 뒤 “백업 목록 새로고침”을 누르세요.</div>'}else renderLocalBackupUI()}
 async function refreshBackupUI(){if(!isRemoteMode()){renderLocalBackupUI();return}if(!(await ensureMaster()))return;try{const res=await callApi('listBackups',{},true);backupCache=res.backups||[];renderServerBackups()}catch(e){if(e.code!=='CANCEL')alert(apiErrorText(e))}}
@@ -567,16 +673,47 @@ function downloadLocalBackup(date){const b=loadLocalBackups().find(x=>x.date===d
 
 async function migrateLocalToServer(){if(!isRemoteMode()){alert('공용 서버를 먼저 연결해 주세요.');return}if(!(await ensureMaster()))return;const local=loadLocalData().records;if(!local.length){alert('이관할 로컬 자료가 없습니다.');return}if(!confirm(`이 브라우저의 로컬 자료 ${local.length}건을 공용 서버로 이관할까요?\n\n주의: 데모자료가 포함되어 있다면 먼저 확인하세요.`))return;const mode=confirm('현재 공용 서버 자료에 추가할까요?\n[확인] 추가 / [취소] 서버 자료를 로컬자료로 덮어쓰기')?'append':'replace';try{const res=await callApi('importRecords',{records:local,mode},true);cacheRecords=(res.records||[]).map(normalizeRecord);renderAll();alert('공용 서버 이관이 완료되었습니다.')}catch(e){if(e.code!=='CANCEL')alert(apiErrorText(e))}}
 
-async function changeAccessPassword(){if(!isRemoteMode()){alert('공용 서버 연결 후 사용할 기능입니다.');return}if(!(await ensureMaster()))return;const a=prompt('새 접속 비밀번호를 입력하세요. (6자 이상)');if(a===null)return;if(a.length<6){alert('6자 이상으로 설정해 주세요.');return}const b=prompt('새 접속 비밀번호를 한 번 더 입력하세요.');if(a!==b){alert('비밀번호가 일치하지 않습니다.');return}try{await callApi('changeAccessPassword',{newPassword:a},true);clearAccess();alert('접속 비밀번호를 변경했습니다. 다시 로그인해 주세요.');await loginSharedSystem(true)}catch(e){if(e.code!=='CANCEL')alert(apiErrorText(e))}}
+
+function userStatusLabel(s){return s==='active'?'사용중':s==='pending'?'승인대기':s==='blocked'?'사용중지':s==='reset'?'PIN 재등록 필요':s||'-'}
+function userStatusClass(s){return s==='active'?'us-active':s==='pending'?'us-pending':s==='blocked'?'us-blocked':'us-reset'}
+async function refreshUsers(){
+  if(!isRemoteMode()||!masterToken())return;
+  try{const res=await callApi('listUsers',{},true);userCache=res.users||[];renderUserAdmin()}catch(e){if(e.code!=='CANCEL')alert(apiErrorText(e))}
+}
+function renderUserAdmin(){
+  const host=byId('userAdminList'),sum=byId('userAdminSummary');if(!host||!sum)return;
+  const counts={active:0,pending:0,blocked:0,reset:0};userCache.forEach(u=>{counts[u.status]=(counts[u.status]||0)+1});
+  sum.textContent=`사용중 ${counts.active||0}명 · 승인대기 ${counts.pending||0}명 · 사용중지 ${counts.blocked||0}명 · PIN 재등록 ${counts.reset||0}명`;
+  if(!userCache.length){host.innerHTML='<div class="backup-empty">등록된 사용자가 없습니다.</div>';return}
+  host.innerHTML=userCache.map(u=>{
+    const self=currentUser&&u.userId===currentUser.userId;
+    let actions='';
+    if(u.status==='pending')actions=`<button class="primary" onclick="approveUserAccount('${escAttr(u.userId)}')">승인</button><button class="danger" onclick="deleteUserAccount('${escAttr(u.userId)}')">삭제</button>`;
+    else if(u.status==='active')actions=self?'<span class="small">현재 사용자</span>':`<button class="secondary" onclick="blockUserAccount('${escAttr(u.userId)}')">사용중지</button><button class="ghost" onclick="resetUserPin('${escAttr(u.userId)}')">PIN 초기화</button>`;
+    else if(u.status==='blocked')actions=`<button class="primary" onclick="approveUserAccount('${escAttr(u.userId)}')">재승인</button><button class="ghost" onclick="resetUserPin('${escAttr(u.userId)}')">PIN 초기화</button><button class="danger" onclick="deleteUserAccount('${escAttr(u.userId)}')">삭제</button>`;
+    else actions=`<button class="danger" onclick="deleteUserAccount('${escAttr(u.userId)}')">삭제</button>`;
+    return `<div class="user-row"><div><div class="user-name">${esc(u.name||u.userId)}</div><div class="user-sub">ID ${esc(u.userId)}</div></div><div>${esc(u.unit||'-')}</div><div><span class="user-status ${userStatusClass(u.status)}">${userStatusLabel(u.status)}</span></div><div class="user-sub">등록 ${fmt(u.createdAt)}<br>${u.lastLoginAt?`최근 로그인 ${fmt(u.lastLoginAt)}`:'로그인 이력 없음'}</div><div class="user-actions">${actions}</div></div>`
+  }).join('');
+}
+async function approveUserAccount(userId){if(!confirm(`${userId} 사용자를 승인할까요?`))return;try{const r=await callApi('approveUser',{userId},true);userCache=r.users||[];renderUserAdmin()}catch(e){alert(apiErrorText(e))}}
+async function blockUserAccount(userId){if(!confirm(`${userId} 사용자의 접속을 중지할까요?\\n기존 로그인 세션도 무효화됩니다.`))return;try{const r=await callApi('blockUser',{userId},true);userCache=r.users||[];renderUserAdmin()}catch(e){alert(apiErrorText(e))}}
+async function resetUserPin(userId){if(!confirm(`${userId} 사용자의 PIN을 초기화할까요?\\n해당 직원이 로그인 화면에서 새 PIN을 다시 등록하고 재승인을 받아야 합니다.`))return;try{const r=await callApi('resetUserPin',{userId},true);userCache=r.users||[];renderUserAdmin()}catch(e){alert(apiErrorText(e))}}
+async function deleteUserAccount(userId){if(!confirm(`${userId} 사용자 계정을 삭제할까요?`))return;try{const r=await callApi('deleteUser',{userId},true);userCache=r.users||[];renderUserAdmin()}catch(e){alert(apiErrorText(e))}}
+async function revokeAllUserSessions(){if(!confirm('현재 로그인 중인 모든 직원의 세션을 만료할까요?\\n본인도 다시 로그인해야 합니다.'))return;try{await callApi('revokeAllSessions',{},true);clearAccess();cacheRecords=[];remoteConnected=false;renderAll();showLoginGate('전체 세션이 만료되었습니다. 다시 로그인해 주세요.')}catch(e){alert(apiErrorText(e))}}
+
 async function changeMasterPassword(){if(isRemoteMode()){if(!(await ensureMaster()))return;const a=prompt('새 마스터 비밀번호를 입력하세요. (6자 이상)');if(a===null)return;if(a.length<6){alert('6자 이상으로 설정해 주세요.');return}const b=prompt('새 마스터 비밀번호를 한 번 더 입력하세요.');if(a!==b){alert('비밀번호가 일치하지 않습니다.');return}try{await callApi('changeMasterPassword',{newPassword:a},true);clearMaster();alert('마스터 비밀번호를 변경했습니다.')}catch(e){if(e.code!=='CANCEL')alert(apiErrorText(e))}}else{if(!(await localRequireMaster()))return;const a=prompt('새 로컬 마스터 비밀번호를 입력하세요.');if(a===null||a.length<4)return;const b=prompt('한 번 더 입력하세요.');if(a!==b){alert('일치하지 않습니다.');return}localStorage.setItem(LOCAL_PASS_KEY,await sha256(a));lockMaster();alert('로컬 마스터 비밀번호를 변경했습니다.')}}
 
 async function init(){
-  await ensureLocalPassword();updateConnectionUI();updateAuthUI();
+  await ensureLocalPassword();restoreCurrentUser();updateConnectionUI();updateAuthUI();
   if(isRemoteMode()){
     try{
-      const ping=await apiRaw('ping');if(!ping.initialized)throw new Error('Apps Script에서 setupSystem()을 먼저 실행해 주세요.');setSyncState('busy','접속 대기');
-      if(accessToken()&&operatorName()){hideLoginGate();await refreshFromServer()}else{clearAccess();cacheRecords=[];renderAll();await loginSharedSystem(true)}
-    }catch(e){setSyncState('bad','서버 연결 실패');cacheRecords=[];renderAll();showLoginGate('공용 서버 연결을 확인해 주세요.');console.error(e)}
+      const ping=await apiRaw('ping');
+      if(!ping.initialized)throw new Error('Apps Script에서 setupSystem()을 먼저 실행해 주세요.');
+      if(String(ping.version)!=='0.8')throw new Error(`Apps Script를 v0.8 코드로 교체·재배포해 주세요. 현재 백엔드 v${ping.version}`);
+      setSyncState('busy','접속 대기');
+      if(accessToken()){hideLoginGate();await refreshFromServer()}
+      else{clearAccess();cacheRecords=[];renderAll();await loginSharedSystem(true)}
+    }catch(e){setSyncState('bad','서버 연결 실패');clearAccess();cacheRecords=[];renderAll();showLoginGate(apiErrorText(e));console.error(e)}
   }else{hideLoginGate();loadCacheFromLocal();localEnsureDailyBackup();renderAll();}
   startAutoRefresh();
 }
