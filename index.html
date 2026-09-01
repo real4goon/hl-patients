@@ -90,17 +90,23 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
 .startup-gate{position:fixed;inset:0;z-index:4000;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e9eff7 0%,#dfe8f3 48%,#edf2f7 100%)}
 .startup-gate.hidden{display:none}.startup-card{display:flex;flex-direction:column;align-items:center;gap:10px;color:#40536c;font-weight:800;font-size:13px}.startup-mark{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:15px;background:#183153;color:#fff;font-size:25px;font-weight:900;box-shadow:0 12px 34px rgba(24,49,83,.16)}.startup-spinner{width:24px;height:24px;border:3px solid #cad6e3;border-top-color:#183153;border-radius:50%;animation:startupSpin .8s linear infinite}@keyframes startupSpin{to{transform:rotate(360deg)}}
 
-/* v1.1 저장/처리 중 표시 */
+/* 저장/처리 중 표시 */
 .processing-overlay{position:fixed;inset:0;z-index:5200;display:none;align-items:center;justify-content:center;background:rgba(18,35,56,.20);backdrop-filter:blur(1px)}
 .processing-overlay.show{display:flex}.processing-card{min-width:210px;max-width:85vw;background:#fff;border:1px solid #cad6e3;border-radius:16px;box-shadow:0 18px 60px rgba(24,49,83,.25);padding:19px 22px;text-align:center;color:#20334c;font-weight:900;font-size:14px}.processing-spinner{width:28px;height:28px;border:3px solid #d8e2ed;border-top-color:#183153;border-radius:50%;animation:startupSpin .7s linear infinite;margin:0 auto 10px}.processing-sub{font-size:11.5px;font-weight:600;color:#7a8797;margin-top:5px}.record-owner-note{display:block;color:#7a8797;font-size:10.5px;margin-top:3px}
 button:disabled{cursor:wait!important;opacity:.62!important;transform:none!important}
 
+
+/* v1.3 종결취소 · 마스터 일괄관리 */
+.bulk-bar{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 13px;padding:10px 12px;border:1px solid #cfd9e5;border-radius:11px;background:#f7f9fc}
+.master-mode .bulk-bar{display:flex}.bulk-bar label{display:inline-flex;align-items:center;gap:6px;margin:0;font-size:12px;color:#40536c;font-weight:900}.bulk-bar .bulk-count{font-size:12px;color:#596579;margin-right:auto}.bulk-bar button{padding:7px 10px}
+.bulk-check-col{display:none!important;width:3.2%;text-align:center!important}.master-mode .bulk-check-col{display:table-cell!important}.bulk-check{width:16px!important;height:16px!important;margin:0!important;padding:0!important;accent-color:#315b8a;vertical-align:middle}
+.bulk-mobile-select{display:none;align-items:center;gap:5px;font-size:11px;font-weight:900;color:#596579}.master-mode .bulk-mobile-select{display:inline-flex}.bulk-bar .danger{background:#fff0ee;color:#a12a22}
+.master-mode .share-table .c-manage{width:15%}.master-mode .share-table .c-issue{width:19%}.master-mode .share-table .c-plan{width:17%}
+@media(max-width:760px){.bulk-bar{position:sticky;top:42px;z-index:18;margin:0 0 10px;padding:8px 9px;background:rgba(247,249,252,.97);backdrop-filter:blur(4px)}.bulk-bar .bulk-count{flex:1 1 100%;order:-1}.bulk-bar button{flex:1 1 auto}.bulk-mobile-select{margin-top:5px}}
+
 </style>
 </head>
 <body class="app-locked">
-<div class="startup-gate" id="startupGate" aria-live="polite">
-  <div class="startup-card"><div class="startup-mark">H</div><div class="startup-spinner"></div><div id="startupText">로그인 상태 확인 중…</div></div>
-</div>
 <div class="login-gate hidden" id="loginGate">
   <div class="login-card">
     <div class="login-mark">H</div>
@@ -155,7 +161,7 @@ button:disabled{cursor:wait!important;opacity:.62!important;transform:none!impor
 <div class="wrap">
   <div class="hero">
     <div>
-      <h1>원무팀 문제환자 · VIP 공유 <span class="version">v1.1 · 중복방지·등록자권한</span></h1>
+      <h1>원무팀 문제환자 · VIP 공유 <span class="version">v1.3 · 종결취소·일괄관리</span></h1>
       <div class="sub">야간·휴일·공휴일 근무자가 여러 PC에서 동일한 문제환자·VIP 데이터를 실시간 공유합니다.</div>
     </div>
     <div class="hero-tools">
@@ -186,11 +192,18 @@ button:disabled{cursor:wait!important;opacity:.62!important;transform:none!impor
   <section id="tab-problem" class="tab-page">
     <div class="card">
       <div class="section-head">
-        <div><h2>문제환자 공유 현황</h2><div class="caption">문제유형은 재정 / 분쟁 / 기타로 구분합니다. 종결된 환자는 종결보관함으로 이동합니다.</div></div>
+        <div><h2>문제환자 공유 현황</h2><div class="caption">문제유형은 재정 / 분쟁 / 기타로 구분합니다. 잘못 분류한 환자는 관리 버튼에서 VIP 탭으로 옮길 수 있습니다. 종결된 환자는 종결보관함으로 이동합니다.</div></div>
         <div class="row">
           <button class="primary" onclick="openProblemModal()">+ 문제환자 등록</button>
           <button class="secondary" onclick="printCurrent('problem')">A4 인쇄</button>
         </div>
+      </div>
+      <div class="bulk-bar" id="problemBulkBar">
+        <label><input class="bulk-check" id="problemSelectAll" type="checkbox" onchange="toggleSelectAll('problem',this.checked)"> 현재 표시 전체선택</label>
+        <span class="bulk-count">선택 <b id="problemSelectedCount">0</b>명</span>
+        <button class="ghost" onclick="bulkCloseSelected('problem')">선택 종결</button>
+        <button class="danger" onclick="bulkDeleteSelected('problem')">선택 삭제</button>
+        <button class="secondary" onclick="clearBulkSelection('problem')">선택 해제</button>
       </div>
       <div class="summary">
         <div class="sum"><div class="sum-label">현재 공유</div><div class="sum-value" id="pSumAll">0<small>명</small></div></div>
@@ -209,7 +222,7 @@ button:disabled{cursor:wait!important;opacity:.62!important;transform:none!impor
       </div>
       <div class="table-wrap">
         <table class="share-table">
-          <thead><tr><th class="c-no">No.</th><th class="c-patient">환자/등록번호</th><th class="c-ward">병실</th><th class="c-doc">교수</th><th class="c-dept">과</th><th class="c-type">문제유형</th><th class="c-issue">문제 내용</th><th class="c-plan">퇴원·사망 시 대응</th><th class="c-other">기타</th><th class="c-owner">담당자</th><th class="c-manage">관리</th></tr></thead>
+          <thead><tr><th class="bulk-check-col">선택</th><th class="c-no">No.</th><th class="c-patient">환자/등록번호</th><th class="c-ward">병실</th><th class="c-doc">교수</th><th class="c-dept">과</th><th class="c-type">문제유형</th><th class="c-issue">문제 내용</th><th class="c-plan">퇴원·사망 시 대응</th><th class="c-other">기타</th><th class="c-owner">담당자</th><th class="c-manage">관리</th></tr></thead>
           <tbody id="problemTbody"></tbody>
         </table>
         <div class="empty hidden" id="problemEmpty">조건에 맞는 문제환자가 없습니다.</div>
@@ -221,11 +234,18 @@ button:disabled{cursor:wait!important;opacity:.62!important;transform:none!impor
   <section id="tab-vip" class="tab-page hidden">
     <div class="card">
       <div class="section-head">
-        <div><h2>VIP 관리</h2><div class="caption">문제환자와 별도 목록으로 관리하며, 특별 요청사항과 주의사항을 중심으로 공유합니다.</div></div>
+        <div><h2>VIP 관리</h2><div class="caption">특별 요청사항과 주의사항을 중심으로 공유합니다. 잘못 등록한 경우 문제환자 탭으로 바로 이동할 수 있습니다.</div></div>
         <div class="row">
           <button class="purple" onclick="openVipModal()">+ VIP 등록</button>
           <button class="secondary" onclick="printCurrent('vip')">A4 인쇄</button>
         </div>
+      </div>
+      <div class="bulk-bar" id="vipBulkBar">
+        <label><input class="bulk-check" id="vipSelectAll" type="checkbox" onchange="toggleSelectAll('vip',this.checked)"> 현재 표시 전체선택</label>
+        <span class="bulk-count">선택 <b id="vipSelectedCount">0</b>명</span>
+        <button class="ghost" onclick="bulkCloseSelected('vip')">선택 종결</button>
+        <button class="danger" onclick="bulkDeleteSelected('vip')">선택 삭제</button>
+        <button class="secondary" onclick="clearBulkSelection('vip')">선택 해제</button>
       </div>
       <div class="summary">
         <div class="sum"><div class="sum-label">현재 관리</div><div class="sum-value" id="vSumAll">0<small>명</small></div></div>
@@ -244,7 +264,7 @@ button:disabled{cursor:wait!important;opacity:.62!important;transform:none!impor
       </div>
       <div class="table-wrap">
         <table class="share-table">
-          <thead><tr><th class="c-no">No.</th><th class="c-patient">환자/등록번호</th><th class="c-ward">병실</th><th class="c-doc">교수</th><th class="c-dept">과</th><th class="c-type">VIP 구분</th><th class="c-issue">요청사항</th><th class="c-plan">주의·대응사항</th><th class="c-other">기타</th><th class="c-owner">담당자</th><th class="c-manage">관리</th></tr></thead>
+          <thead><tr><th class="bulk-check-col">선택</th><th class="c-no">No.</th><th class="c-patient">환자/등록번호</th><th class="c-ward">병실</th><th class="c-doc">교수</th><th class="c-dept">과</th><th class="c-type">VIP 구분</th><th class="c-issue">요청사항</th><th class="c-plan">주의·대응사항</th><th class="c-other">기타</th><th class="c-owner">담당자</th><th class="c-manage">관리</th></tr></thead>
           <tbody id="vipTbody"></tbody>
         </table>
         <div class="empty hidden" id="vipEmpty">조건에 맞는 VIP 환자가 없습니다.</div>
@@ -256,8 +276,15 @@ button:disabled{cursor:wait!important;opacity:.62!important;transform:none!impor
   <section id="tab-archive" class="tab-page hidden">
     <div class="card">
       <div class="section-head">
-        <div><h2>종결보관함</h2><div class="caption">문제환자와 VIP 종결 자료를 함께 보관합니다. 복원·삭제는 마스터 권한이 필요합니다.</div></div>
+        <div><h2>종결보관함</h2><div class="caption">종결한 문제환자와 VIP를 보관합니다. 잘못 종결한 경우 현재 목록으로 되돌릴 수 있으며, 마스터는 일괄 복원·삭제가 가능합니다.</div></div>
         <div class="row"><button class="secondary" onclick="printCurrent('archive')">A4 인쇄</button></div>
+      </div>
+      <div class="bulk-bar" id="archiveBulkBar">
+        <label><input class="bulk-check" id="archiveSelectAll" type="checkbox" onchange="toggleSelectAll('archive',this.checked)"> 현재 표시 전체선택</label>
+        <span class="bulk-count">선택 <b id="archiveSelectedCount">0</b>명</span>
+        <button class="ghost" onclick="bulkRestoreSelected()">선택 종결취소</button>
+        <button class="danger" onclick="bulkDeleteSelected('archive')">선택 삭제</button>
+        <button class="secondary" onclick="clearBulkSelection('archive')">선택 해제</button>
       </div>
       <div class="toolbar">
         <div class="filters">
@@ -269,7 +296,7 @@ button:disabled{cursor:wait!important;opacity:.62!important;transform:none!impor
       </div>
       <div class="table-wrap">
         <table class="share-table">
-          <thead><tr><th class="c-no">No.</th><th class="c-type">구분</th><th class="c-patient">환자/등록번호</th><th class="c-ward">병실</th><th class="c-dept">과</th><th class="c-issue">주요 내용</th><th class="c-plan">대응·주의사항</th><th class="c-owner">담당자</th><th class="c-owner">최종 해결자</th><th class="c-closed">종결일</th><th class="c-manage">관리</th></tr></thead>
+          <thead><tr><th class="bulk-check-col">선택</th><th class="c-no">No.</th><th class="c-type">구분</th><th class="c-patient">환자/등록번호</th><th class="c-ward">병실</th><th class="c-dept">과</th><th class="c-issue">주요 내용</th><th class="c-plan">대응·주의사항</th><th class="c-owner">담당자</th><th class="c-owner">최종 해결자</th><th class="c-closed">종결일</th><th class="c-manage">관리</th></tr></thead>
           <tbody id="archiveTbody"></tbody>
         </table>
         <div class="empty hidden" id="archiveEmpty">종결된 자료가 없습니다.</div>
@@ -301,7 +328,7 @@ button:disabled{cursor:wait!important;opacity:.62!important;transform:none!impor
         </div>
         <div class="admin-box">
           <h3>③ 마스터 권한 · 보안</h3>
-          <p>수정·삭제·종결·복원·사용자관리·백업은 마스터 권한에서만 가능합니다.</p>
+          <p>일반 직원은 등록·수정·종결·개별 종결취소가 가능하며, 마스터는 일괄 종결·일괄 종결취소·일괄 삭제·사용자관리·백업 등 관리자 기능을 사용할 수 있습니다.</p>
           <div class="row"><button class="secondary" onclick="lockMaster()">마스터 즉시 잠금</button><button class="secondary" onclick="changeMasterPassword()">마스터 비밀번호 변경</button></div>
           <div class="small" id="masterState" style="margin-top:9px">현재 잠김</div>
           <div class="row" style="margin-top:10px"><button class="danger" onclick="revokeAllUserSessions()">전체 직원 세션 만료</button></div>
@@ -346,7 +373,7 @@ button:disabled{cursor:wait!important;opacity:.62!important;transform:none!impor
 </div>
 
 <script>
-const APP_VERSION='1.1';
+const APP_VERSION='1.2';
 const DEFAULT_API_URL='https://script.google.com/macros/s/AKfycbz_m7rRSLvBELNzdGe3u5FLpyF0e0Xj3F2-SrPCz8fCmE2aCY99OdECmhcOrMRNLV76JQ/exec'; // 공용 Apps Script 서버
 const API_URL_KEY='hospitalAdminShare_apiUrl_v06';
 const USER_ID_KEY='hospitalAdminShare_userId_v08';
@@ -381,6 +408,7 @@ let userCache=[];
 let pendingPollTimer=null;
 let recordOperationBusy=false;
 let modalRequestId='';
+const bulkSelected={problem:new Set(),vip:new Set(),archive:new Set()};
 
 const DEMO_DATA={records:[
   {id:'demo-p1',kind:'problem',name:'홍길동',reg:'012345678',ward:'10병동 1001호',doctor:'김OO 교수',dept:'GI',problemType:'재정',owner:'원무팀 김OO',finalResolver:'',issue:'고액 진료비 미수 관련 보호자와 분납 협의 중.',plan:'퇴원 또는 사망 발생 시 원무팀 담당자에게 먼저 연락 후 수납·서류 절차 진행.',other:'야간 보호자 방문 가능성 있음.',createdAt:'2026-09-01T09:00:00+09:00',updatedAt:'2026-09-01T13:00:00+09:00',closedAt:'',version:1,updatedBy:''},
@@ -450,8 +478,8 @@ function showRegisterPanel(){
   byId('registerError').textContent='';byId('registerSuccess').classList.add('hidden');
   setTimeout(()=>byId('regUserId').focus(),30);
 }
-function setStartupText(text){const el=byId('startupText');if(el)el.textContent=text||'로그인 상태 확인 중…'}
-function hideStartupGate(){const g=byId('startupGate');if(g)g.classList.add('hidden')}
+function setStartupText(text){}
+function hideStartupGate(){}
 function showLoginGate(message=''){
   hideStartupGate();
   const gate=byId('loginGate');if(!gate)return Promise.resolve(false);
@@ -521,7 +549,7 @@ async function ensureMaster(){
   if(!isRemoteMode())return localRequireMaster();
   if(masterToken())return true;
   if(!accessToken() && !(await loginSharedSystem()))return false;
-  const pw=prompt('마스터 비밀번호를 입력하세요.\n수정·삭제·종결·복원·백업·계정관리에 필요합니다.');if(pw===null)return false;
+  const pw=prompt('마스터 비밀번호를 입력하세요.\n일괄처리·관리자 기능·백업·계정관리에 필요합니다.');if(pw===null)return false;
   try{
     const res=await apiRaw('unlockMaster',{password:pw},accessToken(),'');
     if(res.user)saveCurrentUser(res.user);saveToken(MASTER_TOKEN_KEY,MASTER_EXP_KEY,res.masterToken,res.expiresAt);
@@ -560,7 +588,7 @@ async function saveConnectionSettings(){
 }
 async function testConnection(){
   if(!isRemoteMode()){alert('공용 서버 주소를 먼저 설정해 주세요.');return false}
-  try{setSyncState('busy','서버 확인 중');const res=await apiRaw('ping');if(!res.initialized)throw new Error('백엔드에서 setupSystem()이 아직 실행되지 않았습니다.');if(String(res.version)!=='1.1')throw new Error(`백엔드 v1.1 재배포가 필요합니다. 현재 v${res.version}`);setSyncState('ok',`서버 v${res.version} 응답 정상`);alert(`연결 정상 · 백엔드 v${res.version}`);return true}catch(e){setSyncState('bad','서버 연결 실패');alert(apiErrorText(e));return false}
+  try{setSyncState('busy','서버 확인 중');const res=await apiRaw('ping');if(!res.initialized)throw new Error('백엔드에서 setupSystem()이 아직 실행되지 않았습니다.');if(String(res.version)!=='1.3')throw new Error(`백엔드 v1.3 재배포가 필요합니다. 현재 v${res.version}`);setSyncState('ok',`서버 v${res.version} 응답 정상`);alert(`연결 정상 · 백엔드 v${res.version}`);return true}catch(e){setSyncState('bad','서버 연결 실패');alert(apiErrorText(e));return false}
 }
 async function logoutSharedSystem(){clearPendingMode();clearAccess();cacheRecords=[];remoteConnected=false;currentTab='problem';sessionStorage.setItem(CURRENT_TAB_KEY,'problem');setSyncState('busy','로그아웃됨');activateTabDom('problem');renderAll();updateAuthUI();showLoginGate('로그아웃되었습니다. 다시 로그인해 주세요.');}
 function startAutoRefresh(){if(refreshTimer)clearInterval(refreshTimer);if(isRemoteMode())refreshTimer=setInterval(()=>{updateAuthUI();if(accessToken()&&!modalMode&&!isPendingUser())refreshFromServer(true)},45000);if(isPendingUser())showPendingMode(currentUser)}
@@ -603,7 +631,9 @@ function updateAuthUI(){
   const adminTab=byId('adminTabBtn');if(adminTab)adminTab.classList.toggle('hidden',!unlocked);
   const adminBtn=byId('adminUnlockBtn');if(adminBtn)adminBtn.textContent=unlocked?'🛠 관리자 열기':'🔐 관리자 인증';
   const uc=byId('userChip');if(uc)uc.textContent=operatorName()?`👤 ${operatorName()}${isPendingUser()?' · 승인대기':''}`:'👤 미로그인';
-  if(!unlocked && currentTab==='admin')activateTabDom('problem');
+  document.body.classList.toggle('master-mode',!!unlocked);
+  if(!unlocked){clearAllBulkSelections(false);if(currentTab==='admin')activateTabDom('problem')}
+  updateAllBulkUI();
 }
 function activateTabDom(tab){currentTab=tab;sessionStorage.setItem(CURRENT_TAB_KEY,tab);document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));document.querySelectorAll('.tab-page').forEach(x=>x.classList.add('hidden'));const page=byId('tab-'+tab);if(page)page.classList.remove('hidden')}
 async function openAdminArea(){if(!(await ensureMaster()))return;updateAuthUI();activateTabDom('admin');updateConnectionUI();renderBackupUIBase();renderAll();refreshUsers()}
@@ -621,26 +651,37 @@ function renderAll(){
   byId('pSumAll').innerHTML=`${p.length}<small>명</small>`;byId('pSumFin').innerHTML=`${p.filter(x=>x.problemType==='재정').length}<small>명</small>`;byId('pSumDispute').innerHTML=`${p.filter(x=>x.problemType==='분쟁').length}<small>명</small>`;byId('pSumOther').innerHTML=`${p.filter(x=>!['재정','분쟁'].includes(x.problemType)).length}<small>명</small>`;
   byId('vSumAll').innerHTML=`${v.length}<small>명</small>`;byId('vSumOrg').innerHTML=`${v.filter(x=>x.vipClass==='재단·병원 주요인사').length}<small>명</small>`;byId('vSumExternal').innerHTML=`${v.filter(x=>x.vipClass==='외부기관').length}<small>명</small>`;byId('vSumToday').innerHTML=`${v.filter(x=>localDateKey(x.updatedAt)===todayKey()).length}<small>명</small>`;
   fillSelect('pDeptFilter',[...new Set(p.map(x=>x.dept).filter(Boolean))].sort(),'진료과 전체');fillSelect('vDeptFilter',[...new Set(v.map(x=>x.dept).filter(Boolean))].sort(),'진료과 전체');fillSelect('vClassFilter',[...new Set(v.map(x=>x.vipClass).filter(Boolean))].sort(),'VIP 구분 전체');
-  const pi=problemVisible(),vi=vipVisible(),ai=archiveVisible();byId('pVisibleCount').textContent=pi.length;byId('vVisibleCount').textContent=vi.length;byId('aVisibleCount').textContent=ai.length;
+  const pi=problemVisible(),vi=vipVisible(),ai=archiveVisible();syncBulkSelection('problem',pi);syncBulkSelection('vip',vi);syncBulkSelection('archive',ai);byId('pVisibleCount').textContent=pi.length;byId('vVisibleCount').textContent=vi.length;byId('aVisibleCount').textContent=ai.length;
   byId('problemTbody').innerHTML=pi.map(problemRow).join('');byId('vipTbody').innerHTML=vi.map(vipRow).join('');byId('archiveTbody').innerHTML=ai.map(archiveRow).join('');
   byId('problemMobile').innerHTML=pi.length?pi.map(problemMobileCard).join(''):'<div class="empty">조건에 맞는 문제환자가 없습니다.</div>';
   byId('vipMobile').innerHTML=vi.length?vi.map(vipMobileCard).join(''):'<div class="empty">조건에 맞는 VIP 환자가 없습니다.</div>';
   byId('archiveMobile').innerHTML=ai.length?ai.map(archiveMobileCard).join(''):'<div class="empty">종결된 자료가 없습니다.</div>';
-  byId('problemEmpty').classList.toggle('hidden',pi.length>0);byId('vipEmpty').classList.toggle('hidden',vi.length>0);byId('archiveEmpty').classList.toggle('hidden',ai.length>0);updateAuthUI();
+  byId('problemEmpty').classList.toggle('hidden',pi.length>0);byId('vipEmpty').classList.toggle('hidden',vi.length>0);byId('archiveEmpty').classList.toggle('hidden',ai.length>0);updateAuthUI();updateAllBulkUI();
 }
 function isRecordCreator(r){return !!(currentUser&&r&&r.createdById&&r.createdById===currentUser.userId)}
 function canDeleteRecord(r){return hasMasterUI()||isRecordCreator(r)}
 function versionMeta(r){const creator=r.createdBy?`등록 ${esc(r.createdBy)} · `:'';return `<span class="meta">${creator}수정 ${fmt(r.updatedAt)}${r.updatedBy?` · ${esc(r.updatedBy)}`:''}${r.version?` · v${r.version}`:''}</span>`}
 function hasMasterUI(){return isRemoteMode()?!!masterToken():localUnlocked()}
+function selectedSet(kind){return bulkSelected[kind]||bulkSelected.problem}
+function visibleForKind(kind){return kind==='problem'?problemVisible():(kind==='vip'?vipVisible():archiveVisible())}
+function toggleRecordSelection(kind,id,checked){const s=selectedSet(kind);if(checked)s.add(id);else s.delete(id);updateBulkUI(kind)}
+function toggleSelectAll(kind,checked){const s=selectedSet(kind);const visible=visibleForKind(kind);visible.forEach(r=>checked?s.add(r.id):s.delete(r.id));updateBulkUI(kind);renderAll()}
+function clearBulkSelection(kind,rerender=true){selectedSet(kind).clear();updateBulkUI(kind);if(rerender)renderAll()}
+function clearAllBulkSelections(rerender=true){Object.values(bulkSelected).forEach(s=>s.clear());if(rerender)renderAll()}
+function syncBulkSelection(kind,visible){const ids=new Set(visible.map(r=>r.id)),s=selectedSet(kind);[...s].forEach(id=>{if(!ids.has(id))s.delete(id)})}
+function updateBulkUI(kind){const s=selectedSet(kind),visible=visibleForKind(kind),count=byId(kind+'SelectedCount'),all=byId(kind+'SelectAll');if(count)count.textContent=s.size;if(all){all.checked=visible.length>0&&visible.every(r=>s.has(r.id));all.indeterminate=s.size>0&&!all.checked}}
+function updateAllBulkUI(){['problem','vip','archive'].forEach(updateBulkUI)}
+function bulkCheckCell(kind,r){return `<td class="bulk-check-col"><input class="bulk-check" type="checkbox" ${selectedSet(kind).has(r.id)?'checked':''} onchange="toggleRecordSelection('${kind}','${escAttr(r.id)}',this.checked)" aria-label="${escAttr(r.name)} 선택"></td>`}
+function bulkMobileCheck(kind,r){return `<label class="bulk-mobile-select"><input class="bulk-check" type="checkbox" ${selectedSet(kind).has(r.id)?'checked':''} onchange="toggleRecordSelection('${kind}','${escAttr(r.id)}',this.checked)"> 선택</label>`}
 function activeActions(r){const del=canDeleteRecord(r)?`<button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button>`:'';return `<button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="closeRecord('${escAttr(r.id)}')">종결</button>${del}`}
-function archiveActions(r){const admin=hasMasterUI()?`<button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="restoreRecord('${escAttr(r.id)}')">복원</button>`:'';const del=canDeleteRecord(r)?`<button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button>`:'';return admin+del||(isRecordCreator(r)?'<span class="master-only-note">등록자 삭제 가능</span>':'<span class="master-only-note">마스터 전용</span>')}
-function problemRow(r,i){return `<tr><td class="c-no">${i+1}</td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td><span class="two">${esc(r.doctor||'-')}</span></td><td>${esc(r.dept||'-')}</td><td><span class="pill ${typeClass(r.problemType)}">${esc(r.problemType||'기타')}</span></td><td title="${escAttr(r.issue)}"><span class="three">${esc(r.issue||'-')}</span>${versionMeta(r)}</td><td title="${escAttr(r.plan)}"><span class="three">${esc(r.plan||'-')}</span></td><td title="${escAttr(r.other)}"><span class="two">${esc(r.other||'-')}</span></td><td><span class="two">${esc(r.owner||'-')}</span></td><td class="actions">${activeActions(r)}</td></tr>`}
-function vipRow(r,i){return `<tr><td class="c-no">${i+1}</td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td><span class="two">${esc(r.doctor||'-')}</span></td><td>${esc(r.dept||'-')}</td><td><span class="pill t-vip">${esc(r.vipClass||'기타')}</span></td><td title="${escAttr(r.request)}"><span class="three">${esc(r.request||'-')}</span>${versionMeta(r)}</td><td title="${escAttr(r.caution)}"><span class="three">${esc(r.caution||'-')}</span></td><td title="${escAttr(r.other)}"><span class="two">${esc(r.other||'-')}</span></td><td><span class="two">${esc(r.owner||'-')}</span></td><td class="actions">${activeActions(r)}</td></tr>`}
-function archiveRow(r,i){const main=r.kind==='problem'?r.issue:r.request;const plan=r.kind==='problem'?r.plan:r.caution;return `<tr><td class="c-no">${i+1}</td><td><span class="pill ${r.kind==='vip'?'t-vip':'t-other'}">${r.kind==='problem'?'문제환자':'VIP'}</span></td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td>${esc(r.dept||'-')}</td><td title="${escAttr(main)}"><span class="three">${esc(main||'-')}</span></td><td title="${escAttr(plan)}"><span class="three">${esc(plan||'-')}</span></td><td>${esc(r.owner||'-')}</td><td><span class="final-resolver">${esc(r.finalResolver||'-')}</span></td><td>${fmt(r.closedAt)}</td><td class="actions">${archiveActions(r)}</td></tr>`}
+function archiveActions(r){const edit=hasMasterUI()?`<button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button>`:'';const restore=`<button class="ghost" onclick="restoreRecord('${escAttr(r.id)}')">종결취소</button>`;const del=canDeleteRecord(r)?`<button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button>`:'';return edit+restore+del}
+function problemRow(r,i){return `<tr>${bulkCheckCell('problem',r)}<td class="c-no">${i+1}</td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td><span class="two">${esc(r.doctor||'-')}</span></td><td>${esc(r.dept||'-')}</td><td><span class="pill ${typeClass(r.problemType)}">${esc(r.problemType||'기타')}</span></td><td title="${escAttr(r.issue)}"><span class="three">${esc(r.issue||'-')}</span>${versionMeta(r)}</td><td title="${escAttr(r.plan)}"><span class="three">${esc(r.plan||'-')}</span></td><td title="${escAttr(r.other)}"><span class="two">${esc(r.other||'-')}</span></td><td><span class="two">${esc(r.owner||'-')}</span></td><td class="actions">${activeActions(r)}</td></tr>`}
+function vipRow(r,i){return `<tr>${bulkCheckCell('vip',r)}<td class="c-no">${i+1}</td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td><span class="two">${esc(r.doctor||'-')}</span></td><td>${esc(r.dept||'-')}</td><td><span class="pill t-vip">${esc(r.vipClass||'기타')}</span></td><td title="${escAttr(r.request)}"><span class="three">${esc(r.request||'-')}</span>${versionMeta(r)}</td><td title="${escAttr(r.caution)}"><span class="three">${esc(r.caution||'-')}</span></td><td title="${escAttr(r.other)}"><span class="two">${esc(r.other||'-')}</span></td><td><span class="two">${esc(r.owner||'-')}</span></td><td class="actions">${activeActions(r)}</td></tr>`}
+function archiveRow(r,i){const main=r.kind==='problem'?r.issue:r.request;const plan=r.kind==='problem'?r.plan:r.caution;return `<tr>${bulkCheckCell('archive',r)}<td class="c-no">${i+1}</td><td><span class="pill ${r.kind==='vip'?'t-vip':'t-other'}">${r.kind==='problem'?'문제환자':'VIP'}</span></td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td>${esc(r.dept||'-')}</td><td title="${escAttr(main)}"><span class="three">${esc(main||'-')}</span></td><td title="${escAttr(plan)}"><span class="three">${esc(plan||'-')}</span></td><td>${esc(r.owner||'-')}</td><td><span class="final-resolver">${esc(r.finalResolver||'-')}</span></td><td>${fmt(r.closedAt)}</td><td class="actions">${archiveActions(r)}</td></tr>`}
 function mobileField(label,value,full=false){return `<div class="mobile-field${full?' full':''}"><span class="mobile-label">${label}</span><div class="mobile-value">${esc(value||'-')}</div></div>`}
-function problemMobileCard(r,i){return `<div class="mobile-card"><div class="mobile-card-head"><div><div class="mobile-card-name">${esc(r.name)}</div><div class="mobile-card-reg">${esc(r.reg||'-')} · ${esc(r.ward||'-')}</div></div><span class="pill ${typeClass(r.problemType)}">${esc(r.problemType||'기타')}</span></div><div class="mobile-card-grid">${mobileField('진료과 / 교수',`${r.dept||'-'} / ${r.doctor||'-'}`)}${mobileField('담당자',r.owner)}${mobileField('문제 내용',r.issue,true)}${mobileField('퇴원·사망 시 대응',r.plan,true)}${r.other?mobileField('기타',r.other,true):''}</div><div class="mobile-meta">${versionMeta(r)}</div><div class="mobile-actions">${activeActions(r)}</div></div>`}
-function vipMobileCard(r,i){return `<div class="mobile-card"><div class="mobile-card-head"><div><div class="mobile-card-name">${esc(r.name)}</div><div class="mobile-card-reg">${esc(r.reg||'-')} · ${esc(r.ward||'-')}</div></div><span class="pill t-vip">${esc(r.vipClass||'기타')}</span></div><div class="mobile-card-grid">${mobileField('진료과 / 교수',`${r.dept||'-'} / ${r.doctor||'-'}`)}${mobileField('담당자',r.owner)}${mobileField('요청사항',r.request,true)}${mobileField('주의·대응사항',r.caution,true)}${r.other?mobileField('기타',r.other,true):''}</div><div class="mobile-meta">${versionMeta(r)}</div><div class="mobile-actions">${activeActions(r)}</div></div>`}
-function archiveMobileCard(r,i){const main=r.kind==='problem'?r.issue:r.request,plan=r.kind==='problem'?r.plan:r.caution;return `<div class="mobile-card"><div class="mobile-card-head"><div><div class="mobile-card-name">${esc(r.name)}</div><div class="mobile-card-reg">${esc(r.reg||'-')} · ${esc(r.ward||'-')}</div></div><span class="pill ${r.kind==='vip'?'t-vip':'t-other'}">${r.kind==='problem'?'문제환자':'VIP'}</span></div><div class="mobile-card-grid">${mobileField('진료과',r.dept)}${mobileField('담당자',r.owner)}${mobileField('주요 내용',main,true)}${mobileField('대응·주의사항',plan,true)}${mobileField('최종 해결자',r.finalResolver)}${mobileField('종결일',fmt(r.closedAt))}</div><div class="mobile-actions">${archiveActions(r)}</div></div>`}
+function problemMobileCard(r,i){return `<div class="mobile-card"><div class="mobile-card-head"><div><div class="mobile-card-name">${esc(r.name)}</div><div class="mobile-card-reg">${esc(r.reg||'-')} · ${esc(r.ward||'-')}</div>${bulkMobileCheck('problem',r)}</div><span class="pill ${typeClass(r.problemType)}">${esc(r.problemType||'기타')}</span></div><div class="mobile-card-grid">${mobileField('진료과 / 교수',`${r.dept||'-'} / ${r.doctor||'-'}`)}${mobileField('담당자',r.owner)}${mobileField('문제 내용',r.issue,true)}${mobileField('퇴원·사망 시 대응',r.plan,true)}${r.other?mobileField('기타',r.other,true):''}</div><div class="mobile-meta">${versionMeta(r)}</div><div class="mobile-actions">${activeActions(r)}</div></div>`}
+function vipMobileCard(r,i){return `<div class="mobile-card"><div class="mobile-card-head"><div><div class="mobile-card-name">${esc(r.name)}</div><div class="mobile-card-reg">${esc(r.reg||'-')} · ${esc(r.ward||'-')}</div>${bulkMobileCheck('vip',r)}</div><span class="pill t-vip">${esc(r.vipClass||'기타')}</span></div><div class="mobile-card-grid">${mobileField('진료과 / 교수',`${r.dept||'-'} / ${r.doctor||'-'}`)}${mobileField('담당자',r.owner)}${mobileField('요청사항',r.request,true)}${mobileField('주의·대응사항',r.caution,true)}${r.other?mobileField('기타',r.other,true):''}</div><div class="mobile-meta">${versionMeta(r)}</div><div class="mobile-actions">${activeActions(r)}</div></div>`}
+function archiveMobileCard(r,i){const main=r.kind==='problem'?r.issue:r.request,plan=r.kind==='problem'?r.plan:r.caution;return `<div class="mobile-card"><div class="mobile-card-head"><div><div class="mobile-card-name">${esc(r.name)}</div><div class="mobile-card-reg">${esc(r.reg||'-')} · ${esc(r.ward||'-')}</div>${bulkMobileCheck('archive',r)}</div><span class="pill ${r.kind==='vip'?'t-vip':'t-other'}">${r.kind==='problem'?'문제환자':'VIP'}</span></div><div class="mobile-card-grid">${mobileField('진료과',r.dept)}${mobileField('담당자',r.owner)}${mobileField('주요 내용',main,true)}${mobileField('대응·주의사항',plan,true)}${mobileField('최종 해결자',r.finalResolver)}${mobileField('종결일',fmt(r.closedAt))}</div><div class="mobile-actions">${archiveActions(r)}</div></div>`}
 function problemForm(r={}){return `<div class="form-grid">
   <div><label class="required">환자명</label><input id="m_name" value="${escAttr(r.name||'')}" placeholder="예: 홍길동"></div>
   <div><label class="required">등록번호</label><input id="m_reg" value="${escAttr(r.reg||'')}" placeholder="예: 012345678"></div>
@@ -697,14 +738,23 @@ async function closeRecord(id){
   if(recordOperationBusy)return;const r=records().find(x=>x.id===id);if(!r)return;
   const handler=prompt('최종 해결자를 확인하세요.\n현재 로그인 사용자가 기본값입니다.',operatorName());if(handler===null)return;if(!handler.trim()){alert('종결하려면 최종 해결자를 입력해야 합니다.');return}if(!confirm(`${r.name} 환자를 종결보관함으로 이동할까요?`))return;
   setProcessing(true,'⏳ 종결 처리 중…');try{if(isRemoteMode()){await callApi('closeRecord',{id:r.id,expectedVersion:r.version,finalResolver:handler.trim()},false);setProcessing(true,'↻ 종결보관함 반영 중…');await refreshFromServer()}else{r.finalResolver=handler.trim();r.closedAt=nowISO();r.updatedAt=r.closedAt;r.version=Number(r.version||0)+1;r.updatedBy=operatorName();saveLocalData({records:records()});localEnsureDailyBackup();renderAll()}}catch(e){if(e.code==='CONFLICT')await refreshFromServer();if(e.code!=='CANCEL')alert(apiErrorText(e))}finally{setProcessing(false)}}
-async function restoreRecord(id){if(recordOperationBusy)return;if(!(await requireMaster()))return;const r=records().find(x=>x.id===id);if(!r)return;if(!confirm(`${r.name} 환자를 현재 목록으로 복원할까요?`))return;setProcessing(true,'⏳ 종결자료 복원 중…');try{if(isRemoteMode()){await callApi('restoreRecord',{id:r.id,expectedVersion:r.version},true);await refreshFromServer()}else{r.closedAt='';r.finalResolver='';r.updatedAt=nowISO();r.version=Number(r.version||0)+1;r.updatedBy=operatorName();saveLocalData({records:records()});localEnsureDailyBackup();renderAll()}}catch(e){if(e.code==='CONFLICT')await refreshFromServer();if(e.code!=='CANCEL')alert(apiErrorText(e))}finally{setProcessing(false)}}
-async function deleteRecord(id){
+async function restoreRecord(id){
   if(recordOperationBusy)return;const r=records().find(x=>x.id===id);if(!r)return;
-  const creator=isRecordCreator(r),master=hasMasterUI();if(!creator&&!master){alert('삭제는 최초 등록자 또는 마스터만 가능합니다.');return}
-  const who=creator?'최초 등록자 권한':'마스터 권한';if(!confirm(`${r.name} ${r.closedAt?'종결 ':''}자료를 완전히 삭제할까요?
-${who}으로 삭제합니다.
-삭제 전 백업에서 복원할 수 있습니다.`))return;
-  setProcessing(true,'⏳ 삭제 처리 중…');try{if(isRemoteMode()){await callApi('deleteRecord',{id:r.id,expectedVersion:r.version},master);await refreshFromServer()}else{cacheRecords=records().filter(x=>x.id!==id);saveLocalData({records:cacheRecords});localEnsureDailyBackup();renderAll()}}catch(e){if(e.code==='DELETE_FORBIDDEN')alert('삭제 권한이 없습니다. 최초 등록자 또는 마스터 인증이 필요합니다.');else if(e.code==='CONFLICT'){await refreshFromServer();alert(apiErrorText(e));}else if(e.code!=='CANCEL')alert(apiErrorText(e))}finally{setProcessing(false)}}
+  const backTo=r.kind==='vip'?'VIP 관리':'문제환자';
+  if(!confirm(`${r.name} 환자의 종결을 취소하고 ${backTo} 현재 목록으로 되돌릴까요?\n\n종결일과 최종 해결자 정보는 해제됩니다.`))return;
+  setProcessing(true,'⏳ 종결취소 · 현재 목록으로 이동 중…');
+  try{if(isRemoteMode()){await callApi('restoreRecord',{id:r.id,expectedVersion:r.version},false);await refreshFromServer(true)}else{r.closedAt='';r.finalResolver='';r.updatedAt=nowISO();r.version=Number(r.version||0)+1;r.updatedBy=operatorName();saveLocalData({records:records()});localEnsureDailyBackup();renderAll()}switchTab(r.kind)}catch(e){if(e.code==='CONFLICT')await refreshFromServer(true);if(e.code!=='CANCEL')alert(apiErrorText(e))}finally{setProcessing(false)}
+}
+async function bulkRestoreSelected(){
+  if(recordOperationBusy)return;if(!hasMasterUI()&&!(await requireMaster()))return;const s=selectedSet('archive'),items=archiveVisible().filter(r=>s.has(r.id));if(!items.length){alert('종결취소할 자료를 선택해 주세요.');return}
+  if(!confirm(`선택한 ${items.length}건의 종결을 취소하고 각각 원래 현재 목록으로 되돌릴까요?\n\n종결일과 최종 해결자 정보는 해제됩니다.`))return;
+  setProcessing(true,`⏳ ${items.length}건 일괄 종결취소 중…`);try{if(isRemoteMode()){await callApi('bulkRestoreRecords',{items:items.map(r=>({id:r.id,expectedVersion:r.version}))},true);await refreshFromServer(true)}else{const stamp=nowISO();items.forEach(r=>{r.closedAt='';r.finalResolver='';r.updatedAt=stamp;r.updatedBy=operatorName();r.version=Number(r.version||0)+1});saveLocalData({records:records()});renderAll()}clearBulkSelection('archive',false);renderAll()}catch(e){if(e.code==='CONFLICT')await refreshFromServer(true);if(e.code!=='CANCEL')alert(apiErrorText(e))}finally{setProcessing(false)}
+}
+async function bulkDeleteSelected(kind){
+  if(recordOperationBusy)return;if(!hasMasterUI()&&!(await requireMaster()))return;const s=selectedSet(kind),items=visibleForKind(kind).filter(r=>s.has(r.id));if(!items.length){alert('삭제할 자료를 선택해 주세요.');return}
+  const label=kind==='archive'?'종결보관함 자료':'현재 자료';if(!confirm(`선택한 ${items.length}건의 ${label}를 완전히 삭제할까요?\n\n마스터 일괄삭제이며, 필요 시 백업에서 복원해야 합니다.`))return;
+  setProcessing(true,`⏳ ${items.length}건 일괄 삭제 중…`);try{if(isRemoteMode()){await callApi('bulkDeleteRecords',{items:items.map(r=>({id:r.id,expectedVersion:r.version}))},true);await refreshFromServer(true)}else{const ids=new Set(items.map(r=>r.id));cacheRecords=records().filter(r=>!ids.has(r.id));saveLocalData({records:cacheRecords});renderAll()}clearBulkSelection(kind,false);renderAll()}catch(e){if(e.code==='CONFLICT')await refreshFromServer(true);if(e.code!=='CANCEL')alert(apiErrorText(e))}finally{setProcessing(false)}
+}
 
 function resetProblemFilters(){byId('pSearch').value='';byId('pTypeFilter').value='';byId('pDeptFilter').value='';renderAll()}
 function resetVipFilters(){byId('vSearch').value='';byId('vClassFilter').value='';byId('vDeptFilter').value='';renderAll()}
@@ -787,15 +837,16 @@ async function changeMasterPassword(){if(isRemoteMode()){if(!(await ensureMaster
 async function init(){
   await ensureLocalPassword();restoreCurrentUser();currentTab=sessionStorage.getItem(CURRENT_TAB_KEY)||'problem';updateConnectionUI();updateAuthUI();activateTabDom(validRestoredTab());
   if(isRemoteMode()){
+    const hadSession=!!(accessToken()&&currentUser);
+    if(hadSession){hideLoginGate();cacheRecords=[];renderAll()}else{clearAccess();cacheRecords=[];renderAll();showLoginGate()}
     try{
       const ping=await apiRaw('ping');
       if(!ping.initialized)throw new Error('Apps Script에서 setupSystem()을 먼저 실행해 주세요.');
-      if(String(ping.version)!=='1.1')throw new Error(`Apps Script를 v1.1 코드로 교체·재배포해 주세요. 현재 백엔드 v${ping.version}`);
-      setSyncState('busy','접속 대기');
-      if(accessToken()&&currentUser){
-        if(isPendingUser()){hideLoginGate();cacheRecords=[];renderAll();showPendingMode(currentUser);await checkApprovalStatus(true)}
-        else{setStartupText('최신 공유자료 불러오는 중…');await refreshFromServer(true);hideLoginGate()}
-      }else{clearAccess();cacheRecords=[];renderAll();hideStartupGate();await loginSharedSystem(true)}
+      if(String(ping.version)!=='1.2')throw new Error(`Apps Script를 v1.2 코드로 교체·재배포해 주세요. 현재 백엔드 v${ping.version}`);
+      if(hadSession&&accessToken()&&currentUser){
+        if(isPendingUser()){cacheRecords=[];renderAll();showPendingMode(currentUser);await checkApprovalStatus(true)}
+        else await refreshFromServer(true);
+      }else setSyncState('busy','로그인 대기');
     }catch(e){setSyncState('bad','서버 연결 실패');clearPendingMode();clearAccess();cacheRecords=[];renderAll();showLoginGate(apiErrorText(e));console.error(e)}
   }else{clearPendingMode();hideLoginGate();loadCacheFromLocal();localEnsureDailyBackup();renderAll();}
   activateTabDom(validRestoredTab());if(currentTab==='admin'&&masterToken())refreshUsers();startAutoRefresh();
