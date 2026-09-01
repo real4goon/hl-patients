@@ -82,16 +82,21 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
 @media(max-width:760px){.user-row{grid-template-columns:1fr 1fr}.user-actions{grid-column:1/-1;justify-content:flex-start}.user-actions button{flex:1}}
 
 
-/* v0.9 승인대기 잠금 · 새로고침 상태 유지 */
+/* v1.0 승인대기 · 세션복원 · 시작화면 */
 .pending-overlay{position:fixed;inset:0;z-index:2600;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(232,238,246,.38);backdrop-filter:blur(2px)}
 .pending-overlay.hidden{display:none}.pending-card{width:min(470px,100%);background:#fff;border:1px solid #c7d4e3;border-radius:18px;box-shadow:0 24px 80px rgba(24,49,83,.22);padding:24px;text-align:center}
 .pending-icon{width:48px;height:48px;margin:0 auto 12px;border-radius:15px;display:flex;align-items:center;justify-content:center;background:#fff3cd;font-size:23px}.pending-card h2{font-size:21px;margin:0 0 7px;color:#20334c}.pending-card p{margin:0 0 13px;color:#596579;font-size:14px}.pending-note{padding:11px 12px;border-radius:11px;background:#f5f8fb;border:1px solid #e0e7ef;color:#667085;font-size:12px;line-height:1.55;text-align:left}.pending-status{margin:12px 0 0;color:#856404;font-size:12.5px;font-weight:800}.pending-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}.pending-actions button{flex:1 1 120px}.approval-pending .wrap,.approval-pending .footer{filter:blur(7px);opacity:.48;pointer-events:none;user-select:none}.approval-pending .pending-overlay{display:flex}.approval-pending.app-locked .wrap,.approval-pending.app-locked .footer{visibility:visible}.refreshing-button{opacity:.7;cursor:wait}
 @media(max-width:520px){.pending-card{padding:20px 16px}.pending-actions{flex-direction:column}.pending-actions button{width:100%}}
+.startup-gate{position:fixed;inset:0;z-index:4000;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e9eff7 0%,#dfe8f3 48%,#edf2f7 100%)}
+.startup-gate.hidden{display:none}.startup-card{display:flex;flex-direction:column;align-items:center;gap:10px;color:#40536c;font-weight:800;font-size:13px}.startup-mark{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:15px;background:#183153;color:#fff;font-size:25px;font-weight:900;box-shadow:0 12px 34px rgba(24,49,83,.16)}.startup-spinner{width:24px;height:24px;border:3px solid #cad6e3;border-top-color:#183153;border-radius:50%;animation:startupSpin .8s linear infinite}@keyframes startupSpin{to{transform:rotate(360deg)}}
 
 </style>
 </head>
 <body class="app-locked">
-<div class="login-gate" id="loginGate">
+<div class="startup-gate" id="startupGate" aria-live="polite">
+  <div class="startup-card"><div class="startup-mark">H</div><div class="startup-spinner"></div><div id="startupText">로그인 상태 확인 중…</div></div>
+</div>
+<div class="login-gate hidden" id="loginGate">
   <div class="login-card">
     <div class="login-mark">H</div>
 
@@ -105,16 +110,16 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
       <button class="primary" id="loginButton" onclick="submitLoginGate()">로그인</button>
       <button class="login-link" type="button" onclick="showRegisterPanel()">처음 사용 / PIN 재등록</button>
       <div class="login-error" id="loginError"></div>
-      <div class="login-help">신규 직원은 본인이 PIN을 정해 등록하면 바로 승인대기 화면으로 들어갑니다. 승인되면 목록이 자동으로 열립니다.</div>
+      <div class="login-help">처음 사용하는 직원은 이름과 개인 PIN을 직접 등록합니다. 등록 후 승인대기 화면으로 들어가며, 관리자 승인 후 환자·VIP 목록이 자동으로 열립니다.</div>
     </div>
 
     <div id="registerPanel" class="hidden">
       <h2>사용자 등록</h2>
-      <p>본인이 사용할 PIN을 직접 설정합니다. PIN 원문은 관리자 화면에 표시되지 않습니다.</p>
+      <p>본인 이름과 부서, 사용할 개인 PIN을 등록합니다. 등록 후 승인대기 화면으로 바로 들어가며, 관리자 승인 전에는 환자정보가 표시되지 않습니다. 승인되면 별도 재로그인 없이 목록이 자동으로 열립니다.</p>
       <label>사용자 ID <span class="small">(본인 이름)</span></label>
       <input id="regUserId" autocomplete="username" placeholder="예: 김영선">
-      <label>소속 / 근무구분</label>
-      <input id="regUnit" placeholder="예: 입원계 / 응급원무">
+      <label>부서</label>
+      <input id="regUnit" placeholder="예: 원무팀">
       <label>개인 PIN <span class="small">(숫자 6자리)</span></label>
       <input id="regPin" type="password" inputmode="numeric" maxlength="6" placeholder="●●●●●●">
       <label>PIN 확인</label>
@@ -145,7 +150,7 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
 <div class="wrap">
   <div class="hero">
     <div>
-      <h1>원무팀 문제환자 · VIP 공유 <span class="version">v0.9 · 직원계정 승인·대기모드</span></h1>
+      <h1>원무팀 문제환자 · VIP 공유 <span class="version">v1.0 · 직원계정·세션복원 개선</span></h1>
       <div class="sub">야간·휴일·공휴일 근무자가 여러 PC에서 동일한 문제환자·VIP 데이터를 실시간 공유합니다.</div>
     </div>
     <div class="hero-tools">
@@ -284,7 +289,7 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
         </div>
         <div class="admin-box full-admin">
           <h3>② 직원 계정 관리</h3>
-          <p>직원이 직접 등록한 계정을 승인·중지·PIN 초기화·삭제할 수 있습니다. 승인대기 직원은 로그인 후 잠금 화면에서 승인 여부가 자동 확인됩니다. PIN 원문은 관리자에게도 표시되지 않습니다.</p>
+          <p>직원이 직접 등록한 계정을 승인·중지·PIN 변경·초기화·삭제할 수 있습니다. 기존 PIN 원문은 표시되지 않으며, 관리자가 PIN 변경을 선택하면 새 숫자 6자리 PIN으로 즉시 교체됩니다.</p>
           <div class="row"><button class="primary" onclick="refreshUsers()">사용자 목록 새로고침</button></div>
           <div id="userAdminSummary" class="small" style="margin-top:9px"></div>
           <div id="userAdminList" class="user-admin-list"></div>
@@ -332,7 +337,7 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
 </div>
 
 <script>
-const APP_VERSION='0.9';
+const APP_VERSION='1.0';
 const DEFAULT_API_URL='https://script.google.com/macros/s/AKfycbz_m7rRSLvBELNzdGe3u5FLpyF0e0Xj3F2-SrPCz8fCmE2aCY99OdECmhcOrMRNLV76JQ/exec'; // 공용 Apps Script 서버
 const API_URL_KEY='hospitalAdminShare_apiUrl_v06';
 const USER_ID_KEY='hospitalAdminShare_userId_v08';
@@ -434,13 +439,16 @@ function showRegisterPanel(){
   byId('registerError').textContent='';byId('registerSuccess').classList.add('hidden');
   setTimeout(()=>byId('regUserId').focus(),30);
 }
+function setStartupText(text){const el=byId('startupText');if(el)el.textContent=text||'로그인 상태 확인 중…'}
+function hideStartupGate(){const g=byId('startupGate');if(g)g.classList.add('hidden')}
 function showLoginGate(message=''){
+  hideStartupGate();
   const gate=byId('loginGate');if(!gate)return Promise.resolve(false);
   document.body.classList.add('app-locked');gate.classList.remove('hidden');showLoginPanel();byId('loginError').textContent=message;
   if(loginPromise)return loginPromise;
   loginPromise=new Promise(resolve=>{loginResolve=resolve});return loginPromise;
 }
-function hideLoginGate(){const gate=byId('loginGate');if(gate)gate.classList.add('hidden');document.body.classList.remove('app-locked')}
+function hideLoginGate(){hideStartupGate();const gate=byId('loginGate');if(gate)gate.classList.add('hidden');document.body.classList.remove('app-locked')}
 async function submitLoginGate(){
   const userId=(byId('loginName').value||'').trim(),pin=byId('loginPassword').value||'',err=byId('loginError'),btn=byId('loginButton');
   if(!userId){err.textContent='사용자 ID(본인 이름)를 입력해 주세요.';byId('loginName').focus();return}
@@ -461,6 +469,7 @@ async function submitRegistration(){
   const pin=byId('regPin').value||'',pin2=byId('regPin2').value||'',err=byId('registerError'),btn=byId('registerButton'),ok=byId('registerSuccess');
   err.textContent='';ok.classList.add('hidden');
   if(userId.length<2){err.textContent='사용자 ID(본인 이름)를 입력해 주세요.';return}
+  if(!unit){err.textContent='부서를 입력해 주세요.';byId('regUnit').focus();return}
   if(!/^\d{6}$/.test(pin)){err.textContent='개인 PIN은 숫자 6자리로 설정해 주세요.';return}
   if(pin!==pin2){err.textContent='PIN 확인이 일치하지 않습니다.';return}
   try{
@@ -540,7 +549,7 @@ async function saveConnectionSettings(){
 }
 async function testConnection(){
   if(!isRemoteMode()){alert('공용 서버 주소를 먼저 설정해 주세요.');return false}
-  try{setSyncState('busy','서버 확인 중');const res=await apiRaw('ping');if(!res.initialized)throw new Error('백엔드에서 setupSystem()이 아직 실행되지 않았습니다.');if(String(res.version)!=='0.9')throw new Error(`백엔드 v0.9 재배포가 필요합니다. 현재 v${res.version}`);setSyncState('ok',`서버 v${res.version} 응답 정상`);alert(`연결 정상 · 백엔드 v${res.version}`);return true}catch(e){setSyncState('bad','서버 연결 실패');alert(apiErrorText(e));return false}
+  try{setSyncState('busy','서버 확인 중');const res=await apiRaw('ping');if(!res.initialized)throw new Error('백엔드에서 setupSystem()이 아직 실행되지 않았습니다.');if(String(res.version)!=='1.0')throw new Error(`백엔드 v1.0 재배포가 필요합니다. 현재 v${res.version}`);setSyncState('ok',`서버 v${res.version} 응답 정상`);alert(`연결 정상 · 백엔드 v${res.version}`);return true}catch(e){setSyncState('bad','서버 연결 실패');alert(apiErrorText(e));return false}
 }
 async function logoutSharedSystem(){clearPendingMode();clearAccess();cacheRecords=[];remoteConnected=false;currentTab='problem';sessionStorage.setItem(CURRENT_TAB_KEY,'problem');setSyncState('busy','로그아웃됨');activateTabDom('problem');renderAll();updateAuthUI();showLoginGate('로그아웃되었습니다. 다시 로그인해 주세요.');}
 function startAutoRefresh(){if(refreshTimer)clearInterval(refreshTimer);if(isRemoteMode())refreshTimer=setInterval(()=>{updateAuthUI();if(accessToken()&&!modalMode&&!isPendingUser())refreshFromServer(true)},45000);if(isPendingUser())showPendingMode(currentUser)}
@@ -723,15 +732,23 @@ function renderUserAdmin(){
   host.innerHTML=userCache.map(u=>{
     const self=currentUser&&u.userId===currentUser.userId;
     let actions='';
-    if(u.status==='pending')actions=`<button class="primary" onclick="approveUserAccount('${escAttr(u.userId)}')">승인</button><button class="danger" onclick="deleteUserAccount('${escAttr(u.userId)}')">삭제</button>`;
-    else if(u.status==='active')actions=self?'<span class="small">현재 사용자</span>':`<button class="secondary" onclick="blockUserAccount('${escAttr(u.userId)}')">사용중지</button><button class="ghost" onclick="resetUserPin('${escAttr(u.userId)}')">PIN 초기화</button><button class="danger" onclick="deleteUserAccount('${escAttr(u.userId)}')">삭제</button>`;
-    else if(u.status==='blocked')actions=`<button class="primary" onclick="approveUserAccount('${escAttr(u.userId)}')">재승인</button><button class="ghost" onclick="resetUserPin('${escAttr(u.userId)}')">PIN 초기화</button><button class="danger" onclick="deleteUserAccount('${escAttr(u.userId)}')">삭제</button>`;
-    else actions=`<button class="danger" onclick="deleteUserAccount('${escAttr(u.userId)}')">삭제</button>`;
-    return `<div class="user-row"><div><div class="user-name">${esc(u.name||u.userId)}</div><div class="user-sub">ID ${esc(u.userId)}</div></div><div>${esc(u.unit||'-')}</div><div><span class="user-status ${userStatusClass(u.status)}">${userStatusLabel(u.status)}</span></div><div class="user-sub">등록 ${fmt(u.createdAt)}<br>${u.lastLoginAt?`최근 로그인 ${fmt(u.lastLoginAt)}`:'로그인 이력 없음'}</div><div class="user-actions">${actions}</div></div>`
+    const pinChange=`<button class="ghost" onclick="changeUserPin('${escAttr(u.userId)}')">PIN 변경</button>`;
+    if(u.status==='pending')actions=`<button class="primary" onclick="approveUserAccount('${escAttr(u.userId)}')">승인</button>${pinChange}<button class="danger" onclick="deleteUserAccount('${escAttr(u.userId)}')">삭제</button>`;
+    else if(u.status==='active')actions=self?`${pinChange}<span class="small">현재 사용자</span>`:`<button class="secondary" onclick="blockUserAccount('${escAttr(u.userId)}')">사용중지</button>${pinChange}<button class="ghost" onclick="resetUserPin('${escAttr(u.userId)}')">PIN 초기화</button><button class="danger" onclick="deleteUserAccount('${escAttr(u.userId)}')">삭제</button>`;
+    else if(u.status==='blocked')actions=`<button class="primary" onclick="approveUserAccount('${escAttr(u.userId)}')">재승인</button>${pinChange}<button class="ghost" onclick="resetUserPin('${escAttr(u.userId)}')">PIN 초기화</button><button class="danger" onclick="deleteUserAccount('${escAttr(u.userId)}')">삭제</button>`;
+    else actions=`${pinChange}<button class="danger" onclick="deleteUserAccount('${escAttr(u.userId)}')">삭제</button>`;
+    return `<div class="user-row"><div><div class="user-name">${esc(u.name||u.userId)}</div><div class="user-sub">ID ${esc(u.userId)}</div></div><div><div class="user-sub">부서</div>${esc(u.unit||'-')}</div><div><span class="user-status ${userStatusClass(u.status)}">${userStatusLabel(u.status)}</span></div><div class="user-sub">등록 ${fmt(u.createdAt)}<br>${u.lastLoginAt?`최근 로그인 ${fmt(u.lastLoginAt)}`:'로그인 이력 없음'}</div><div class="user-actions">${actions}</div></div>`
   }).join('');
 }
 async function approveUserAccount(userId){if(!confirm(`${userId} 사용자를 승인할까요?`))return;try{const r=await callApi('approveUser',{userId},true);userCache=r.users||[];renderUserAdmin()}catch(e){alert(apiErrorText(e))}}
 async function blockUserAccount(userId){if(!confirm(`${userId} 사용자의 접속을 중지할까요?\\n기존 로그인 세션도 무효화됩니다.`))return;try{const r=await callApi('blockUser',{userId},true);userCache=r.users||[];renderUserAdmin()}catch(e){alert(apiErrorText(e))}}
+async function changeUserPin(userId){
+  const a=prompt(`${userId} 사용자의 새 PIN을 입력하세요.\n숫자 6자리`);if(a===null)return;
+  if(!/^\d{6}$/.test(a)){alert('PIN은 숫자 6자리로 입력해 주세요.');return}
+  const b=prompt('새 PIN을 한 번 더 입력하세요.');if(b===null)return;if(a!==b){alert('PIN이 일치하지 않습니다.');return}
+  if(!confirm(`${userId} 사용자의 PIN을 새 번호로 변경할까요?\n기존 로그인 세션은 즉시 만료됩니다.`))return;
+  try{const r=await callApi('setUserPin',{userId,newPin:a},true);userCache=r.users||[];renderUserAdmin();if(currentUser&&currentUser.userId===userId){clearAccess();cacheRecords=[];remoteConnected=false;renderAll();alert('본인 PIN을 변경했습니다. 새 PIN으로 다시 로그인해 주세요.');showLoginGate()}else alert(`${userId} 사용자의 PIN을 변경했습니다.`)}catch(e){alert(apiErrorText(e))}
+}
 async function resetUserPin(userId){if(!confirm(`${userId} 사용자의 PIN을 초기화할까요?\\n해당 직원이 로그인 화면에서 새 PIN을 다시 등록하고 재승인을 받아야 합니다.`))return;try{const r=await callApi('resetUserPin',{userId},true);userCache=r.users||[];renderUserAdmin()}catch(e){alert(apiErrorText(e))}}
 async function deleteUserAccount(userId){if(!confirm(`${userId} 사용자 계정을 완전히 삭제할까요?\n해당 사용자는 동일 ID로 다시 신규 등록할 수 있습니다.`))return;try{const r=await callApi('deleteUser',{userId},true);userCache=r.users||[];renderUserAdmin()}catch(e){alert(apiErrorText(e))}}
 async function revokeAllUserSessions(){if(!confirm('현재 로그인 중인 모든 직원의 세션을 만료할까요?\\n본인도 다시 로그인해야 합니다.'))return;try{await callApi('revokeAllSessions',{},true);clearAccess();cacheRecords=[];remoteConnected=false;renderAll();showLoginGate('전체 세션이 만료되었습니다. 다시 로그인해 주세요.')}catch(e){alert(apiErrorText(e))}}
@@ -744,13 +761,12 @@ async function init(){
     try{
       const ping=await apiRaw('ping');
       if(!ping.initialized)throw new Error('Apps Script에서 setupSystem()을 먼저 실행해 주세요.');
-      if(String(ping.version)!=='0.9')throw new Error(`Apps Script를 v0.9 코드로 교체·재배포해 주세요. 현재 백엔드 v${ping.version}`);
+      if(String(ping.version)!=='1.0')throw new Error(`Apps Script를 v1.0 코드로 교체·재배포해 주세요. 현재 백엔드 v${ping.version}`);
       setSyncState('busy','접속 대기');
       if(accessToken()&&currentUser){
-        hideLoginGate();
-        if(isPendingUser()){cacheRecords=[];renderAll();showPendingMode(currentUser);await checkApprovalStatus(true)}
-        else await refreshFromServer();
-      }else{clearAccess();cacheRecords=[];renderAll();await loginSharedSystem(true)}
+        if(isPendingUser()){hideLoginGate();cacheRecords=[];renderAll();showPendingMode(currentUser);await checkApprovalStatus(true)}
+        else{setStartupText('최신 공유자료 불러오는 중…');await refreshFromServer(true);hideLoginGate()}
+      }else{clearAccess();cacheRecords=[];renderAll();hideStartupGate();await loginSharedSystem(true)}
     }catch(e){setSyncState('bad','서버 연결 실패');clearPendingMode();clearAccess();cacheRecords=[];renderAll();showLoginGate(apiErrorText(e));console.error(e)}
   }else{clearPendingMode();hideLoginGate();loadCacheFromLocal();localEnsureDailyBackup();renderAll();}
   activateTabDom(validRestoredTab());if(currentTab==='admin'&&masterToken())refreshUsers();startAutoRefresh();
