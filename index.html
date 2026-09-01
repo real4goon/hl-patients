@@ -90,6 +90,11 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
 .startup-gate{position:fixed;inset:0;z-index:4000;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e9eff7 0%,#dfe8f3 48%,#edf2f7 100%)}
 .startup-gate.hidden{display:none}.startup-card{display:flex;flex-direction:column;align-items:center;gap:10px;color:#40536c;font-weight:800;font-size:13px}.startup-mark{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:15px;background:#183153;color:#fff;font-size:25px;font-weight:900;box-shadow:0 12px 34px rgba(24,49,83,.16)}.startup-spinner{width:24px;height:24px;border:3px solid #cad6e3;border-top-color:#183153;border-radius:50%;animation:startupSpin .8s linear infinite}@keyframes startupSpin{to{transform:rotate(360deg)}}
 
+/* v1.1 저장/처리 중 표시 */
+.processing-overlay{position:fixed;inset:0;z-index:5200;display:none;align-items:center;justify-content:center;background:rgba(18,35,56,.20);backdrop-filter:blur(1px)}
+.processing-overlay.show{display:flex}.processing-card{min-width:210px;max-width:85vw;background:#fff;border:1px solid #cad6e3;border-radius:16px;box-shadow:0 18px 60px rgba(24,49,83,.25);padding:19px 22px;text-align:center;color:#20334c;font-weight:900;font-size:14px}.processing-spinner{width:28px;height:28px;border:3px solid #d8e2ed;border-top-color:#183153;border-radius:50%;animation:startupSpin .7s linear infinite;margin:0 auto 10px}.processing-sub{font-size:11.5px;font-weight:600;color:#7a8797;margin-top:5px}.record-owner-note{display:block;color:#7a8797;font-size:10.5px;margin-top:3px}
+button:disabled{cursor:wait!important;opacity:.62!important;transform:none!important}
+
 </style>
 </head>
 <body class="app-locked">
@@ -150,7 +155,7 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
 <div class="wrap">
   <div class="hero">
     <div>
-      <h1>원무팀 문제환자 · VIP 공유 <span class="version">v1.0 · 직원계정·세션복원 개선</span></h1>
+      <h1>원무팀 문제환자 · VIP 공유 <span class="version">v1.1 · 중복방지·등록자권한</span></h1>
       <div class="sub">야간·휴일·공휴일 근무자가 여러 PC에서 동일한 문제환자·VIP 데이터를 실시간 공유합니다.</div>
     </div>
     <div class="hero-tools">
@@ -321,7 +326,7 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
           <div class="row"><button class="secondary" onclick="exportCSV('problem')">문제환자 CSV</button><button class="secondary" onclick="exportCSV('vip')">VIP CSV</button><button class="secondary" onclick="exportCSV('archive')">종결 CSV</button></div>
         </div>
       </div>
-      <div class="security-note"><b>공유형 구조:</b> GitHub Pages에는 HTML·CSS·JavaScript 화면 코드만 올립니다. 환자명·등록번호·병실·문제내용은 GitHub 저장소에 넣지 않고 Apps Script가 연결된 별도 공용 저장소에 저장합니다. 실제 병원 운영 적용 전에는 기관의 개인정보·클라우드 사용 정책에 따른 보안 검토가 필요합니다.</div>
+      <div class="security-note"><b>업데이트 안전:</b> 같은 Google Sheet·Apps Script 프로젝트에서 새 버전으로 배포하면 기존 <b>환자명단(DATA)과 사용자계정(USERS)은 그대로 유지</b>되고 새 필드만 추가됩니다. GitHub에는 화면 코드만 저장합니다. 승인대기·문의사항 Telegram 알림은 서버 훅을 준비해 두었으며 관리자 설정은 다음 단계에서 연결할 수 있습니다.</div>
     </div>
   </section>
 </div>
@@ -336,8 +341,12 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
   </div>
 </div>
 
+<div class="processing-overlay" id="processingOverlay" aria-live="polite" aria-busy="true">
+  <div class="processing-card"><div class="processing-spinner"></div><div id="processingText">처리 중입니다…</div><div class="processing-sub">저장이 끝날 때까지 버튼을 다시 누르지 마세요.</div></div>
+</div>
+
 <script>
-const APP_VERSION='1.0';
+const APP_VERSION='1.1';
 const DEFAULT_API_URL='https://script.google.com/macros/s/AKfycbz_m7rRSLvBELNzdGe3u5FLpyF0e0Xj3F2-SrPCz8fCmE2aCY99OdECmhcOrMRNLV76JQ/exec'; // 공용 Apps Script 서버
 const API_URL_KEY='hospitalAdminShare_apiUrl_v06';
 const USER_ID_KEY='hospitalAdminShare_userId_v08';
@@ -370,6 +379,8 @@ let loginResolve=null;
 let currentUser=null;
 let userCache=[];
 let pendingPollTimer=null;
+let recordOperationBusy=false;
+let modalRequestId='';
 
 const DEMO_DATA={records:[
   {id:'demo-p1',kind:'problem',name:'홍길동',reg:'012345678',ward:'10병동 1001호',doctor:'김OO 교수',dept:'GI',problemType:'재정',owner:'원무팀 김OO',finalResolver:'',issue:'고액 진료비 미수 관련 보호자와 분납 협의 중.',plan:'퇴원 또는 사망 발생 시 원무팀 담당자에게 먼저 연락 후 수납·서류 절차 진행.',other:'야간 보호자 방문 가능성 있음.',createdAt:'2026-09-01T09:00:00+09:00',updatedAt:'2026-09-01T13:00:00+09:00',closedAt:'',version:1,updatedBy:''},
@@ -549,7 +560,7 @@ async function saveConnectionSettings(){
 }
 async function testConnection(){
   if(!isRemoteMode()){alert('공용 서버 주소를 먼저 설정해 주세요.');return false}
-  try{setSyncState('busy','서버 확인 중');const res=await apiRaw('ping');if(!res.initialized)throw new Error('백엔드에서 setupSystem()이 아직 실행되지 않았습니다.');if(String(res.version)!=='1.0')throw new Error(`백엔드 v1.0 재배포가 필요합니다. 현재 v${res.version}`);setSyncState('ok',`서버 v${res.version} 응답 정상`);alert(`연결 정상 · 백엔드 v${res.version}`);return true}catch(e){setSyncState('bad','서버 연결 실패');alert(apiErrorText(e));return false}
+  try{setSyncState('busy','서버 확인 중');const res=await apiRaw('ping');if(!res.initialized)throw new Error('백엔드에서 setupSystem()이 아직 실행되지 않았습니다.');if(String(res.version)!=='1.1')throw new Error(`백엔드 v1.1 재배포가 필요합니다. 현재 v${res.version}`);setSyncState('ok',`서버 v${res.version} 응답 정상`);alert(`연결 정상 · 백엔드 v${res.version}`);return true}catch(e){setSyncState('bad','서버 연결 실패');alert(apiErrorText(e));return false}
 }
 async function logoutSharedSystem(){clearPendingMode();clearAccess();cacheRecords=[];remoteConnected=false;currentTab='problem';sessionStorage.setItem(CURRENT_TAB_KEY,'problem');setSyncState('busy','로그아웃됨');activateTabDom('problem');renderAll();updateAuthUI();showLoginGate('로그아웃되었습니다. 다시 로그인해 주세요.');}
 function startAutoRefresh(){if(refreshTimer)clearInterval(refreshTimer);if(isRemoteMode())refreshTimer=setInterval(()=>{updateAuthUI();if(accessToken()&&!modalMode&&!isPendingUser())refreshFromServer(true)},45000);if(isPendingUser())showPendingMode(currentUser)}
@@ -563,7 +574,7 @@ async function refreshFromServer(silent=false){
   finally{if(btn&&!silent){btn.disabled=false;btn.classList.remove('refreshing-button');btn.textContent='↻ 새로고침'}}
 }
 
-function normalizeRecord(r){const n={...r};if(!n.finalResolver)n.finalResolver=n.finalHandler||'';if(!n.closedAt&&n.status==='종결')n.closedAt=n.updatedAt||nowISO();delete n.finalHandler;delete n.status;n.version=Number(n.version||0);return n}
+function normalizeRecord(r){const n={...r};if(!n.finalResolver)n.finalResolver=n.finalHandler||'';if(!n.closedAt&&n.status==='종결')n.closedAt=n.updatedAt||nowISO();delete n.finalHandler;delete n.status;n.version=Number(n.version||0);n.createdById=n.createdById||'';n.createdBy=n.createdBy||'';n.clientRequestId=n.clientRequestId||'';return n}
 function migrateOldData(){
   const raw=localStorage.getItem(OLD_STORE_KEY);if(!raw)return null;try{const old=JSON.parse(raw);if(!Array.isArray(old))return null;return {records:old.map(r=>({id:r.id||uuid(),kind:'problem',name:r.name||'',reg:r.reg||'',ward:r.ward||'',doctor:r.doctor||'',dept:r.dept||'',problemType:'기타',owner:r.owner||'',finalResolver:r.finalResolver||r.finalHandler||'',issue:r.issue||'',plan:r.plan||'',other:r.other||'',createdAt:r.createdAt||nowISO(),updatedAt:r.updatedAt||nowISO(),closedAt:r.closedAt||(r.status==='종결'?(r.updatedAt||nowISO()):''),version:Number(r.version||1),updatedBy:''}))}}catch(e){return null}
 }
@@ -617,10 +628,12 @@ function renderAll(){
   byId('archiveMobile').innerHTML=ai.length?ai.map(archiveMobileCard).join(''):'<div class="empty">종결된 자료가 없습니다.</div>';
   byId('problemEmpty').classList.toggle('hidden',pi.length>0);byId('vipEmpty').classList.toggle('hidden',vi.length>0);byId('archiveEmpty').classList.toggle('hidden',ai.length>0);updateAuthUI();
 }
-function versionMeta(r){return `<span class="meta">수정 ${fmt(r.updatedAt)}${r.updatedBy?` · ${esc(r.updatedBy)}`:''}${r.version?` · v${r.version}`:''}</span>`}
+function isRecordCreator(r){return !!(currentUser&&r&&r.createdById&&r.createdById===currentUser.userId)}
+function canDeleteRecord(r){return hasMasterUI()||isRecordCreator(r)}
+function versionMeta(r){const creator=r.createdBy?`등록 ${esc(r.createdBy)} · `:'';return `<span class="meta">${creator}수정 ${fmt(r.updatedAt)}${r.updatedBy?` · ${esc(r.updatedBy)}`:''}${r.version?` · v${r.version}`:''}</span>`}
 function hasMasterUI(){return isRemoteMode()?!!masterToken():localUnlocked()}
-function activeActions(r){return hasMasterUI()?`<button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="closeRecord('${escAttr(r.id)}')">종결</button><button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button>`:'<span class="master-only-note">마스터 전용</span>'}
-function archiveActions(r){return hasMasterUI()?`<button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="restoreRecord('${escAttr(r.id)}')">복원</button><button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button>`:'<span class="master-only-note">마스터 전용</span>'}
+function activeActions(r){const del=canDeleteRecord(r)?`<button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button>`:'';return `<button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="closeRecord('${escAttr(r.id)}')">종결</button>${del}`}
+function archiveActions(r){const admin=hasMasterUI()?`<button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="restoreRecord('${escAttr(r.id)}')">복원</button>`:'';const del=canDeleteRecord(r)?`<button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button>`:'';return admin+del||(isRecordCreator(r)?'<span class="master-only-note">등록자 삭제 가능</span>':'<span class="master-only-note">마스터 전용</span>')}
 function problemRow(r,i){return `<tr><td class="c-no">${i+1}</td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td><span class="two">${esc(r.doctor||'-')}</span></td><td>${esc(r.dept||'-')}</td><td><span class="pill ${typeClass(r.problemType)}">${esc(r.problemType||'기타')}</span></td><td title="${escAttr(r.issue)}"><span class="three">${esc(r.issue||'-')}</span>${versionMeta(r)}</td><td title="${escAttr(r.plan)}"><span class="three">${esc(r.plan||'-')}</span></td><td title="${escAttr(r.other)}"><span class="two">${esc(r.other||'-')}</span></td><td><span class="two">${esc(r.owner||'-')}</span></td><td class="actions">${activeActions(r)}</td></tr>`}
 function vipRow(r,i){return `<tr><td class="c-no">${i+1}</td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td><span class="two">${esc(r.doctor||'-')}</span></td><td>${esc(r.dept||'-')}</td><td><span class="pill t-vip">${esc(r.vipClass||'기타')}</span></td><td title="${escAttr(r.request)}"><span class="three">${esc(r.request||'-')}</span>${versionMeta(r)}</td><td title="${escAttr(r.caution)}"><span class="three">${esc(r.caution||'-')}</span></td><td title="${escAttr(r.other)}"><span class="two">${esc(r.other||'-')}</span></td><td><span class="two">${esc(r.owner||'-')}</span></td><td class="actions">${activeActions(r)}</td></tr>`}
 function archiveRow(r,i){const main=r.kind==='problem'?r.issue:r.request;const plan=r.kind==='problem'?r.plan:r.caution;return `<tr><td class="c-no">${i+1}</td><td><span class="pill ${r.kind==='vip'?'t-vip':'t-other'}">${r.kind==='problem'?'문제환자':'VIP'}</span></td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td>${esc(r.dept||'-')}</td><td title="${escAttr(main)}"><span class="three">${esc(main||'-')}</span></td><td title="${escAttr(plan)}"><span class="three">${esc(plan||'-')}</span></td><td>${esc(r.owner||'-')}</td><td><span class="final-resolver">${esc(r.finalResolver||'-')}</span></td><td>${fmt(r.closedAt)}</td><td class="actions">${archiveActions(r)}</td></tr>`}
@@ -654,28 +667,44 @@ function vipForm(r={}){return `<div class="form-grid">
   <div class="full"><label>기타</label><textarea id="m_other" placeholder="기타 공유사항">${esc(r.other||'')}</textarea></div>
   ${r.closedAt?`<div class="full"><label class="required">최종 해결자</label><input id="m_finalResolver" value="${escAttr(r.finalResolver||'')}" placeholder="예: 원무팀 김OO"></div>`:''}
 </div>`}
-function openProblemModal(){if(isRemoteMode()&&!accessToken()){loginSharedSystem().then(ok=>{if(ok)openProblemModal()});return}modalMode='new';modalKind='problem';editingId=null;byId('modalTitle').textContent='문제환자 등록';byId('modalCaption').textContent='신규 등록은 마스터 비밀번호 없이 가능합니다.';byId('modalBody').innerHTML=problemForm({problemType:'재정'});byId('modalSaveBtn').textContent='등록';byId('recordModal').classList.add('show')}
-function openVipModal(){if(isRemoteMode()&&!accessToken()){loginSharedSystem().then(ok=>{if(ok)openVipModal()});return}modalMode='new';modalKind='vip';editingId=null;byId('modalTitle').textContent='VIP 등록';byId('modalCaption').textContent='VIP 자료는 문제환자와 별도 목록으로 관리됩니다.';byId('modalBody').innerHTML=vipForm({vipClass:'재단·병원 주요인사'});byId('modalSaveBtn').textContent='등록';byId('recordModal').classList.add('show')}
-async function editRecord(id){if(!(await requireMaster()))return;const r=records().find(x=>x.id===id);if(!r)return;modalMode='edit';modalKind=r.kind;editingId=id;byId('modalTitle').textContent=(r.kind==='problem'?'문제환자':'VIP')+' 수정';byId('modalCaption').textContent=r.closedAt?'종결 자료 수정 · 최종 해결자 변경 가능':`기존 자료 변경 · 현재 v${r.version||0}`;byId('modalBody').innerHTML=r.kind==='problem'?problemForm(r):vipForm(r);byId('modalSaveBtn').textContent='수정내용 저장';byId('recordModal').classList.add('show')}
-function closeModal(){byId('recordModal').classList.remove('show');modalMode=null;modalKind=null;editingId=null}
-function backdropClose(e){if(e.target===byId('recordModal'))closeModal()}
+function setProcessing(active,text='처리 중입니다…'){
+  recordOperationBusy=!!active;const o=byId('processingOverlay'),t=byId('processingText');if(t)t.textContent=text;if(o)o.classList.toggle('show',!!active);
+  const save=byId('modalSaveBtn');if(save)save.disabled=!!active;
+}
+function openProblemModal(){if(recordOperationBusy)return;if(isRemoteMode()&&!accessToken()){loginSharedSystem().then(ok=>{if(ok)openProblemModal()});return}modalMode='new';modalKind='problem';editingId=null;modalRequestId=uuid();byId('modalTitle').textContent='문제환자 등록';byId('modalCaption').textContent='승인된 직원은 등록·수정·종결이 가능합니다. 최초 등록자는 해당 자료 삭제 권한도 가집니다.';byId('modalBody').innerHTML=problemForm({problemType:'재정'});byId('modalSaveBtn').textContent='등록';byId('recordModal').classList.add('show')}
+function openVipModal(){if(recordOperationBusy)return;if(isRemoteMode()&&!accessToken()){loginSharedSystem().then(ok=>{if(ok)openVipModal()});return}modalMode='new';modalKind='vip';editingId=null;modalRequestId=uuid();byId('modalTitle').textContent='VIP 등록';byId('modalCaption').textContent='승인된 직원은 등록·수정·종결이 가능합니다. 최초 등록자는 해당 자료 삭제 권한도 가집니다.';byId('modalBody').innerHTML=vipForm({vipClass:'재단·병원 주요인사'});byId('modalSaveBtn').textContent='등록';byId('recordModal').classList.add('show')}
+async function editRecord(id){if(recordOperationBusy)return;const r=records().find(x=>x.id===id);if(!r)return;if(r.closedAt&&!(await requireMaster()))return;modalMode='edit';modalKind=r.kind;editingId=id;modalRequestId='';byId('modalTitle').textContent=(r.kind==='problem'?'문제환자':'VIP')+' 수정';byId('modalCaption').textContent=r.closedAt?'종결 자료 수정 · 마스터 권한':`기존 자료 변경 · 현재 v${r.version||0} · 수정자 기록 자동저장`;byId('modalBody').innerHTML=r.kind==='problem'?problemForm(r):vipForm(r);byId('modalSaveBtn').textContent='수정내용 저장';byId('recordModal').classList.add('show')}
+function closeModal(){if(recordOperationBusy)return;byId('recordModal').classList.remove('show');modalMode=null;modalKind=null;editingId=null;modalRequestId=''}
+function backdropClose(e){if(!recordOperationBusy&&e.target===byId('recordModal'))closeModal()}
 function val(id){const el=byId(id);return el?el.value.trim():''}
 function readModal(){const base={name:val('m_name'),reg:val('m_reg'),ward:val('m_ward'),doctor:val('m_doctor'),dept:val('m_dept'),owner:val('m_owner'),other:val('m_other')};if(modalKind==='problem')return {...base,problemType:val('m_problemType'),issue:val('m_issue'),plan:val('m_plan'),finalResolver:val('m_finalResolver')};return {...base,vipClass:val('m_vipClass'),request:val('m_request'),caution:val('m_caution'),finalResolver:val('m_finalResolver')}}
 async function saveModalRecord(){
+  if(recordOperationBusy)return;
   const r=readModal(),main=modalKind==='problem'?r.issue:r.request;if(!r.name||!r.reg||!main){alert('환자명, 등록번호, 주요 내용은 반드시 입력해 주세요.');return}
+  const isNew=modalMode==='new',requestKey=modalRequestId||(modalRequestId=uuid());setProcessing(true,isNew?'⏳ 등록 저장 중…':'⏳ 수정 저장 중…');
   try{
     if(isRemoteMode()){
-      if(modalMode==='new')await callApi('createRecord',{record:{...r,kind:modalKind}},false);
-      else{const old=records().find(x=>x.id===editingId);if(!old)return;if(old.closedAt&&!r.finalResolver){alert('종결 자료는 최종 해결자를 입력해 주세요.');return}await callApi('updateRecord',{record:{...old,...r,id:old.id,kind:old.kind},expectedVersion:old.version},true)}
-      closeModal();await refreshFromServer();
+      if(isNew)await callApi('createRecord',{record:{...r,kind:modalKind},clientRequestId:requestKey},false);
+      else{const old=records().find(x=>x.id===editingId);if(!old)return;if(old.closedAt&&!r.finalResolver){alert('종결 자료는 최종 해결자를 입력해 주세요.');return}await callApi('updateRecord',{record:{...old,...r,id:old.id,kind:old.kind},expectedVersion:old.version},!!old.closedAt)}
+      setProcessing(true,'✅ 저장 완료 · 목록 갱신 중…');recordOperationBusy=false;closeModal();setProcessing(true,'↻ 최신 목록 불러오는 중…');await refreshFromServer();
     }else{
-      const list=records().slice();if(modalMode==='new')list.push({...r,id:uuid(),kind:modalKind,finalResolver:'',createdAt:nowISO(),updatedAt:nowISO(),closedAt:'',version:1,updatedBy:operatorName()});else{const i=list.findIndex(x=>x.id===editingId);if(i<0)return;const old=list[i];if(old.closedAt&&!r.finalResolver){alert('종결 자료는 최종 해결자를 입력해 주세요.');return}list[i]={...old,...r,updatedAt:nowISO(),version:Number(old.version||0)+1,updatedBy:operatorName()}}saveLocalData({records:list});cacheRecords=list;localEnsureDailyBackup();closeModal();renderAll();
+      const list=records().slice();if(isNew)list.push({...r,id:uuid(),kind:modalKind,finalResolver:'',createdAt:nowISO(),updatedAt:nowISO(),closedAt:'',version:1,updatedBy:operatorName(),createdById:currentUser?.userId||rememberedUserId(),createdBy:operatorName(),clientRequestId:requestKey});else{const i=list.findIndex(x=>x.id===editingId);if(i<0)return;const old=list[i];list[i]={...old,...r,updatedAt:nowISO(),version:Number(old.version||0)+1,updatedBy:operatorName()}}saveLocalData({records:list});cacheRecords=list;recordOperationBusy=false;closeModal();localEnsureDailyBackup();renderAll();
     }
-  }catch(e){if(e.code==='CONFLICT'){closeModal();await refreshFromServer();alert(apiErrorText(e));}else if(e.code!=='CANCEL')alert(apiErrorText(e))}
+  }catch(e){if(e.code==='CONFLICT'){recordOperationBusy=false;closeModal();await refreshFromServer();alert(apiErrorText(e));}else if(e.code!=='CANCEL')alert(apiErrorText(e))}
+  finally{setProcessing(false)}
 }
-async function closeRecord(id){if(!(await requireMaster()))return;const r=records().find(x=>x.id===id);if(!r)return;const handler=prompt('최종 해결자를 입력하세요.\n예: 원무팀 김OO');if(handler===null)return;if(!handler.trim()){alert('종결하려면 최종 해결자를 입력해야 합니다.');return}if(!confirm(`${r.name} 환자를 종결보관함으로 이동할까요?`))return;try{if(isRemoteMode()){await callApi('closeRecord',{id:r.id,expectedVersion:r.version,finalResolver:handler.trim()},true);await refreshFromServer()}else{r.finalResolver=handler.trim();r.closedAt=nowISO();r.updatedAt=r.closedAt;r.version=Number(r.version||0)+1;r.updatedBy=operatorName();saveLocalData({records:records()});localEnsureDailyBackup();renderAll()}}catch(e){if(e.code==='CONFLICT')await refreshFromServer();if(e.code!=='CANCEL')alert(apiErrorText(e))}}
-async function restoreRecord(id){if(!(await requireMaster()))return;const r=records().find(x=>x.id===id);if(!r)return;if(!confirm(`${r.name} 환자를 현재 목록으로 복원할까요?`))return;try{if(isRemoteMode()){await callApi('restoreRecord',{id:r.id,expectedVersion:r.version},true);await refreshFromServer()}else{r.closedAt='';r.finalResolver='';r.updatedAt=nowISO();r.version=Number(r.version||0)+1;r.updatedBy=operatorName();saveLocalData({records:records()});localEnsureDailyBackup();renderAll()}}catch(e){if(e.code==='CONFLICT')await refreshFromServer();if(e.code!=='CANCEL')alert(apiErrorText(e))}}
-async function deleteRecord(id){if(!(await requireMaster()))return;const r=records().find(x=>x.id===id);if(!r)return;if(!confirm(`${r.name} 자료를 완전히 삭제할까요?\n삭제 전 일일백업/안전백업에서 복원할 수 있습니다.`))return;try{if(isRemoteMode()){await callApi('deleteRecord',{id:r.id,expectedVersion:r.version},true);await refreshFromServer()}else{cacheRecords=records().filter(x=>x.id!==id);saveLocalData({records:cacheRecords});localEnsureDailyBackup();renderAll()}}catch(e){if(e.code==='CONFLICT')await refreshFromServer();if(e.code!=='CANCEL')alert(apiErrorText(e))}}
+async function closeRecord(id){
+  if(recordOperationBusy)return;const r=records().find(x=>x.id===id);if(!r)return;
+  const handler=prompt('최종 해결자를 확인하세요.\n현재 로그인 사용자가 기본값입니다.',operatorName());if(handler===null)return;if(!handler.trim()){alert('종결하려면 최종 해결자를 입력해야 합니다.');return}if(!confirm(`${r.name} 환자를 종결보관함으로 이동할까요?`))return;
+  setProcessing(true,'⏳ 종결 처리 중…');try{if(isRemoteMode()){await callApi('closeRecord',{id:r.id,expectedVersion:r.version,finalResolver:handler.trim()},false);setProcessing(true,'↻ 종결보관함 반영 중…');await refreshFromServer()}else{r.finalResolver=handler.trim();r.closedAt=nowISO();r.updatedAt=r.closedAt;r.version=Number(r.version||0)+1;r.updatedBy=operatorName();saveLocalData({records:records()});localEnsureDailyBackup();renderAll()}}catch(e){if(e.code==='CONFLICT')await refreshFromServer();if(e.code!=='CANCEL')alert(apiErrorText(e))}finally{setProcessing(false)}}
+async function restoreRecord(id){if(recordOperationBusy)return;if(!(await requireMaster()))return;const r=records().find(x=>x.id===id);if(!r)return;if(!confirm(`${r.name} 환자를 현재 목록으로 복원할까요?`))return;setProcessing(true,'⏳ 종결자료 복원 중…');try{if(isRemoteMode()){await callApi('restoreRecord',{id:r.id,expectedVersion:r.version},true);await refreshFromServer()}else{r.closedAt='';r.finalResolver='';r.updatedAt=nowISO();r.version=Number(r.version||0)+1;r.updatedBy=operatorName();saveLocalData({records:records()});localEnsureDailyBackup();renderAll()}}catch(e){if(e.code==='CONFLICT')await refreshFromServer();if(e.code!=='CANCEL')alert(apiErrorText(e))}finally{setProcessing(false)}}
+async function deleteRecord(id){
+  if(recordOperationBusy)return;const r=records().find(x=>x.id===id);if(!r)return;
+  const creator=isRecordCreator(r),master=hasMasterUI();if(!creator&&!master){alert('삭제는 최초 등록자 또는 마스터만 가능합니다.');return}
+  const who=creator?'최초 등록자 권한':'마스터 권한';if(!confirm(`${r.name} ${r.closedAt?'종결 ':''}자료를 완전히 삭제할까요?
+${who}으로 삭제합니다.
+삭제 전 백업에서 복원할 수 있습니다.`))return;
+  setProcessing(true,'⏳ 삭제 처리 중…');try{if(isRemoteMode()){await callApi('deleteRecord',{id:r.id,expectedVersion:r.version},master);await refreshFromServer()}else{cacheRecords=records().filter(x=>x.id!==id);saveLocalData({records:cacheRecords});localEnsureDailyBackup();renderAll()}}catch(e){if(e.code==='DELETE_FORBIDDEN')alert('삭제 권한이 없습니다. 최초 등록자 또는 마스터 인증이 필요합니다.');else if(e.code==='CONFLICT'){await refreshFromServer();alert(apiErrorText(e));}else if(e.code!=='CANCEL')alert(apiErrorText(e))}finally{setProcessing(false)}}
 
 function resetProblemFilters(){byId('pSearch').value='';byId('pTypeFilter').value='';byId('pDeptFilter').value='';renderAll()}
 function resetVipFilters(){byId('vSearch').value='';byId('vClassFilter').value='';byId('vDeptFilter').value='';renderAll()}
@@ -761,7 +790,7 @@ async function init(){
     try{
       const ping=await apiRaw('ping');
       if(!ping.initialized)throw new Error('Apps Script에서 setupSystem()을 먼저 실행해 주세요.');
-      if(String(ping.version)!=='1.0')throw new Error(`Apps Script를 v1.0 코드로 교체·재배포해 주세요. 현재 백엔드 v${ping.version}`);
+      if(String(ping.version)!=='1.1')throw new Error(`Apps Script를 v1.1 코드로 교체·재배포해 주세요. 현재 백엔드 v${ping.version}`);
       setSyncState('busy','접속 대기');
       if(accessToken()&&currentUser){
         if(isPendingUser()){hideLoginGate();cacheRecords=[];renderAll();showPendingMode(currentUser);await checkApprovalStatus(true)}
