@@ -61,19 +61,44 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
 @media(max-width:1100px){.full-admin{grid-column:auto}}
 @media(max-width:1100px){.form-grid{grid-template-columns:repeat(2,1fr)}.span2,.span3{grid-column:auto}.share-table th{font-size:calc(9.5px + 2pt);padding:7px 5px}.share-table td{font-size:calc(10.2px + 2pt);padding:6px 5px}.actions button{font-size:calc(8.9px + 2pt);padding:4px 4px}.admin-grid{grid-template-columns:1fr}}
 @media(max-width:700px){.wrap{padding:17px 10px 48px}.hero{flex-direction:column;align-items:flex-start}.guide-grid,.summary,.form-grid{grid-template-columns:1fr}.filters input,.filters select{max-width:none;flex:1 1 100%}.card{padding:14px}.table-wrap{overflow:auto}.share-table{min-width:1180px}.hero-tools{justify-content:flex-start}.modal-backdrop{padding:6px}.modal{max-height:97vh;border-radius:12px}.tabs{border-radius:10px}}
+
+/* v0.7 로그인 게이트 · 관리자 권한 · 모바일 카드 */
+.login-gate{position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(135deg,#e9eff7 0%,#dfe8f3 48%,#edf2f7 100%)}
+.login-gate.hidden{display:none}.login-card{width:min(430px,100%);background:#fff;border:1px solid #cbd6e3;border-radius:20px;box-shadow:0 28px 90px rgba(24,49,83,.22);padding:25px}.login-mark{display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:14px;background:#183153;color:#fff;font-size:22px;font-weight:900;margin-bottom:13px}.login-card h2{font-size:22px;margin:0 0 7px;color:#172b46}.login-card p{font-size:14px;line-height:1.55;color:#667085;margin:0 0 18px}.login-card label{font-size:13px}.login-card input{font-size:16px;padding:12px 13px;margin-bottom:11px}.login-card .primary{width:100%;padding:12px;font-size:15px;margin-top:3px}.login-error{min-height:20px;margin-top:9px;color:#b42318;font-size:12.5px;line-height:1.45}.login-help{margin-top:12px;padding:10px 11px;border-radius:10px;background:#f5f8fb;color:#667085;font-size:11.5px;line-height:1.5}.app-locked .wrap,.app-locked .footer{visibility:hidden}.user-chip{background:#fff;border:1px solid #cbd6e3;color:#31465f}.admin-auth-btn{background:#40536c;color:#fff}.admin-auth-btn:hover{background:#31455e}.admin-tab.hidden{display:none!important}.mobile-list{display:none}.mobile-card{background:#fff;border:1px solid #d7e0ea;border-radius:14px;padding:13px;box-shadow:0 3px 12px rgba(24,49,83,.06)}.mobile-card-head{display:flex;justify-content:space-between;gap:9px;align-items:flex-start;margin-bottom:10px}.mobile-card-name{font-weight:900;font-size:16px;color:#172b46}.mobile-card-reg{font-size:11px;color:#7a8797;margin-top:2px}.mobile-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mobile-field{min-width:0;background:#f7f9fc;border:1px solid #e5eaf0;border-radius:9px;padding:8px}.mobile-field.full{grid-column:1/-1}.mobile-label{display:block;font-size:10.5px;font-weight:900;color:#738094;margin-bottom:3px}.mobile-value{font-size:13px;line-height:1.42;color:#344054;white-space:pre-wrap;overflow-wrap:anywhere}.mobile-meta{font-size:10.5px;color:#8792a2;margin-top:8px}.mobile-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px solid #e7ebf0}.mobile-actions button{flex:1 1 auto;min-width:70px}.master-only-note{font-size:10.5px;color:#8a95a4;text-align:center}.security-curtain{position:fixed;inset:0;z-index:2500;background:#eef3f8;display:none;align-items:center;justify-content:center;color:#40536c;font-weight:800}.security-curtain.show{display:flex}
+@media(max-width:760px){.table-wrap{display:none}.mobile-list{display:flex;flex-direction:column;gap:10px}.hero{gap:12px}.hero h1{font-size:22px;line-height:1.25}.hero-tools{width:100%;gap:6px}.hero-tools button,.hero-tools .chip{font-size:12px;padding:7px 9px}.guide{display:none}.tabs{position:sticky;top:0;z-index:20;margin-left:-2px;margin-right:-2px}.tab{font-size:13px;padding:9px 10px}.summary{grid-template-columns:repeat(2,1fr)!important}.sum{padding:10px}.sum-value{font-size:19px}.section-head{align-items:flex-start;flex-direction:column}.section-head>.row{width:100%}.section-head>.row button{flex:1}.filters{width:100%}.toolbar{gap:8px}.card{border-radius:13px;padding:12px}.mobile-card-grid{grid-template-columns:1fr 1fr}.modal-body{padding:13px}.modal-head,.modal-foot{padding:12px 13px}.form-grid{gap:9px}.login-card{padding:21px 18px;border-radius:16px}.login-card h2{font-size:20px}}
+@media(max-width:430px){.mobile-card-grid{grid-template-columns:1fr}.mobile-field.full{grid-column:auto}.summary{gap:7px}.hero-tools .chip{max-width:100%}.login-gate{padding:10px}}
+
 </style>
 </head>
-<body>
+<body class="app-locked">
+<div class="login-gate" id="loginGate">
+  <div class="login-card">
+    <div class="login-mark">H</div>
+    <h2>원무팀 공유시스템 로그인</h2>
+    <p>본인 이름을 사용자 ID로 사용합니다. 로그인 전에는 환자·VIP 목록을 표시하지 않습니다.</p>
+    <label>사용자 ID <span class="small">(본인 이름)</span></label>
+    <input id="loginName" autocomplete="username" placeholder="예: 김영선 또는 김영선(입원계)">
+    <label>공용 접속 비밀번호</label>
+    <input id="loginPassword" type="password" autocomplete="current-password" placeholder="접속 비밀번호" onkeydown="if(event.key==='Enter')submitLoginGate()">
+    <button class="primary" id="loginButton" onclick="submitLoginGate()">로그인</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-help">수정·종결·삭제·복원·백업·서버설정은 로그인 후에도 <b>마스터 인증</b>이 추가로 필요합니다.</div>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="hero">
     <div>
-      <h1>원무팀 문제환자 · VIP 공유 <span class="version">v0.6 · 공용서버 연동</span></h1>
+      <h1>원무팀 문제환자 · VIP 공유 <span class="version">v0.7 · 로그인·모바일 개선</span></h1>
       <div class="sub">야간·휴일·공휴일 근무자가 여러 PC에서 동일한 문제환자·VIP 데이터를 실시간 공유합니다.</div>
     </div>
     <div class="hero-tools">
+      <div class="chip user-chip" id="userChip">👤 미로그인</div>
       <button class="secondary" onclick="refreshFromServer(false)" title="공용 서버의 최신 자료를 다시 불러옵니다">↻ 새로고침</button>
       <div class="chip" id="syncChip">💻 연결 확인 중</div>
-      <div class="chip warn" id="authChip">🔒 마스터 권한 잠김</div>
+      <button class="admin-auth-btn" id="adminUnlockBtn" onclick="openAdminArea()">🔐 관리자 인증</button>
+      <button class="secondary" onclick="logoutSharedSystem()">로그아웃</button>
+      <div class="chip warn hidden" id="authChip">🔒 마스터 권한 잠김</div>
     </div>
   </div>
 
@@ -81,7 +106,7 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
     <button class="tab active" data-tab="problem" onclick="switchTab('problem')">문제환자 <span class="tab-badge" id="problemTabCount">0</span></button>
     <button class="tab" data-tab="vip" onclick="switchTab('vip')">VIP 관리 <span class="tab-badge" id="vipTabCount">0</span></button>
     <button class="tab" data-tab="archive" onclick="switchTab('archive')">종결보관함 <span class="tab-badge" id="archiveTabCount">0</span></button>
-    <button class="tab" data-tab="admin" onclick="switchTab('admin')">관리자</button>
+    <button class="tab admin-tab hidden" id="adminTabBtn" data-tab="admin" onclick="switchTab('admin')">관리자</button>
   </nav>
 
   <div class="guide" id="mainGuide">
@@ -123,6 +148,7 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
         </table>
         <div class="empty hidden" id="problemEmpty">조건에 맞는 문제환자가 없습니다.</div>
       </div>
+      <div id="problemMobile" class="mobile-list"></div>
     </div>
   </section>
 
@@ -157,6 +183,7 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
         </table>
         <div class="empty hidden" id="vipEmpty">조건에 맞는 VIP 환자가 없습니다.</div>
       </div>
+      <div id="vipMobile" class="mobile-list"></div>
     </div>
   </section>
 
@@ -181,6 +208,7 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
         </table>
         <div class="empty hidden" id="archiveEmpty">종결된 자료가 없습니다.</div>
       </div>
+      <div id="archiveMobile" class="mobile-list"></div>
     </div>
   </section>
 
@@ -193,9 +221,9 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
           <p>공용 Apps Script 서버 주소가 <b>기본 연결</b>되어 있습니다. 재배포로 주소가 바뀐 경우에만 아래 주소를 수정하세요. GitHub에는 화면 코드만 두고 환자 데이터는 연결된 Google Sheet에 저장합니다.</p>
           <label>Apps Script 웹 앱 주소</label>
           <input id="apiUrlInput" placeholder="https://script.google.com/macros/s/...../exec">
-          <label style="margin-top:10px">현재 사용자 이름 <span class="small">(서버 변경이력 표시용)</span></label>
-          <input id="operatorInput" placeholder="예: 김영선 / 응급원무 홍길동">
-          <div class="row" style="margin-top:10px"><button class="primary" onclick="saveConnectionSettings()">설정 저장 · 연결</button><button class="secondary" onclick="testConnection()">서버 테스트</button><button class="ghost" onclick="loginSharedSystem(true)">접속 재로그인</button><button class="ghost" onclick="logoutSharedSystem()">로그아웃</button></div>
+          <label style="margin-top:10px">현재 로그인 사용자 ID</label>
+          <input id="operatorInput" readonly placeholder="로그인한 사용자 이름">
+          <div class="row" style="margin-top:10px"><button class="primary" onclick="saveConnectionSettings()">서버주소 저장 · 연결</button><button class="secondary" onclick="testConnection()">서버 테스트</button></div>
           <div class="small" id="serverState" style="margin-top:9px">연결 상태 확인 중</div>
         </div>
         <div class="admin-box">
@@ -241,14 +269,14 @@ input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;pad
 </div>
 
 <script>
-const APP_VERSION='0.5';
+const APP_VERSION='0.7';
 const DEFAULT_API_URL='https://script.google.com/macros/s/AKfycbz_m7rRSLvBELNzdGe3u5FLpyF0e0Xj3F2-SrPCz8fCmE2aCY99OdECmhcOrMRNLV76JQ/exec'; // 공용 Apps Script 서버
 const API_URL_KEY='hospitalAdminShare_apiUrl_v06';
-const OPERATOR_KEY='hospitalAdminShare_operator_v05';
-const ACCESS_TOKEN_KEY='hospitalAdminShare_accessToken_v05';
-const ACCESS_EXP_KEY='hospitalAdminShare_accessExp_v05';
-const MASTER_TOKEN_KEY='hospitalAdminShare_masterToken_v05';
-const MASTER_EXP_KEY='hospitalAdminShare_masterExp_v05';
+const OPERATOR_KEY='hospitalAdminShare_operator_v07';
+const ACCESS_TOKEN_KEY='hospitalAdminShare_accessToken_v07';
+const ACCESS_EXP_KEY='hospitalAdminShare_accessExp_v07';
+const MASTER_TOKEN_KEY='hospitalAdminShare_masterToken_v07';
+const MASTER_EXP_KEY='hospitalAdminShare_masterExp_v07';
 const LOCAL_STORE_KEY='hospitalAdminShare_v02';
 const OLD_STORE_KEY='hospitalProblemPatientShare_v01';
 const LOCAL_PASS_KEY='hospitalAdminShare_masterHash_v02';
@@ -267,6 +295,8 @@ let remoteConnected=false;
 let refreshTimer=null;
 let backupCache=[];
 let lastServerTime='';
+let loginPromise=null;
+let loginResolve=null;
 
 const DEMO_DATA={records:[
   {id:'demo-p1',kind:'problem',name:'홍길동',reg:'012345678',ward:'10병동 1001호',doctor:'김OO 교수',dept:'GI',problemType:'재정',owner:'원무팀 김OO',finalResolver:'',issue:'고액 진료비 미수 관련 보호자와 분납 협의 중.',plan:'퇴원 또는 사망 발생 시 원무팀 담당자에게 먼저 연락 후 수납·서류 절차 진행.',other:'야간 보호자 방문 가능성 있음.',createdAt:'2026-09-01T09:00:00+09:00',updatedAt:'2026-09-01T13:00:00+09:00',closedAt:'',version:1,updatedBy:''},
@@ -317,18 +347,33 @@ function apiRaw(action,payload={},access='',master=''){
 }
 
 async function loginSharedSystem(force=false){
-  if(!isRemoteMode()){alert('먼저 관리자에서 Apps Script /exec 주소를 설정해 주세요.');return false}
-  if(!force && accessToken())return true;
-  const pw=prompt('공유시스템 접속 비밀번호를 입력하세요.');if(pw===null)return false;
-  try{
-    setSyncState('busy','접속 인증 중');
-    const res=await apiRaw('login',{password:pw},'','');
-    saveToken(ACCESS_TOKEN_KEY,ACCESS_EXP_KEY,res.accessToken,res.expiresAt);
-    cacheRecords=(res.records||[]).map(normalizeRecord);
-    remoteConnected=true;lastServerTime=res.serverTime||'';setSyncState('ok','공용 서버 연결');renderAll();updateAuthUI();startAutoRefresh();return true;
-  }catch(e){remoteConnected=false;setSyncState('bad','인증 실패');alert(apiErrorText(e));return false}
+  if(!isRemoteMode()){alert('공용 서버 주소가 설정되지 않았습니다.');return false}
+  if(!force && accessToken() && operatorName()){hideLoginGate();return true}
+  return showLoginGate();
 }
-
+function showLoginGate(message=''){
+  const gate=byId('loginGate');if(!gate)return Promise.resolve(false);
+  document.body.classList.add('app-locked');gate.classList.remove('hidden');
+  byId('loginName').value=operatorName();byId('loginPassword').value='';byId('loginError').textContent=message;
+  setTimeout(()=>{(byId('loginName').value?byId('loginPassword'):byId('loginName')).focus()},30);
+  if(loginPromise)return loginPromise;
+  loginPromise=new Promise(resolve=>{loginResolve=resolve});return loginPromise;
+}
+function hideLoginGate(){const gate=byId('loginGate');if(gate)gate.classList.add('hidden');document.body.classList.remove('app-locked')}
+async function submitLoginGate(){
+  const name=(byId('loginName').value||'').trim(),pw=byId('loginPassword').value||'',err=byId('loginError'),btn=byId('loginButton');
+  if(!name){err.textContent='사용자 ID(본인 이름)를 입력해 주세요.';byId('loginName').focus();return}
+  if(!pw){err.textContent='공용 접속 비밀번호를 입력해 주세요.';byId('loginPassword').focus();return}
+  try{
+    btn.disabled=true;btn.textContent='로그인 중…';err.textContent='';setSyncState('busy','접속 인증 중');
+    const res=await apiRaw('login',{password:pw},'','');
+    localStorage.setItem(OPERATOR_KEY,name);saveToken(ACCESS_TOKEN_KEY,ACCESS_EXP_KEY,res.accessToken,res.expiresAt);
+    cacheRecords=(res.records||[]).map(normalizeRecord);remoteConnected=true;lastServerTime=res.serverTime||'';
+    setSyncState('ok','공용 서버 연결');hideLoginGate();renderAll();updateConnectionUI();updateAuthUI();startAutoRefresh();
+    const resolve=loginResolve;loginResolve=null;loginPromise=null;if(resolve)resolve(true);
+  }catch(e){remoteConnected=false;setSyncState('bad','인증 실패');err.textContent=apiErrorText(e);byId('loginPassword').select()}
+  finally{btn.disabled=false;btn.textContent='로그인'}
+}
 async function ensureMaster(){
   if(!isRemoteMode())return localRequireMaster();
   if(masterToken())return true;
@@ -362,18 +407,18 @@ function updateConnectionUI(){
   const mig=byId('localMigrationInfo');if(mig){const n=loadLocalData().records.length;mig.textContent=`현재 브라우저 로컬 자료 ${n}건 감지`}
 }
 async function saveConnectionSettings(){
-  const url=(byId('apiUrlInput').value||'').trim();const op=(byId('operatorInput').value||'').trim();
+  const url=(byId('apiUrlInput').value||'').trim();
   if(url && !/\/exec(?:\?.*)?$/.test(url)){alert('Apps Script 웹 앱의 /exec 주소를 입력해 주세요.');return}
   if(url)localStorage.setItem(API_URL_KEY,url);else localStorage.removeItem(API_URL_KEY);
-  localStorage.setItem(OPERATOR_KEY,op);clearAccess();cacheRecords=[];remoteConnected=false;updateConnectionUI();
+  clearAccess();cacheRecords=[];remoteConnected=false;updateConnectionUI();
   if(url){if(await testConnection())await loginSharedSystem(true)}else{loadCacheFromLocal();renderAll()}
 }
 async function testConnection(){
   if(!isRemoteMode()){alert('공용 서버 주소를 먼저 설정해 주세요.');return false}
   try{setSyncState('busy','서버 확인 중');const res=await apiRaw('ping');if(!res.initialized)throw new Error('백엔드에서 setupSystem()이 아직 실행되지 않았습니다.');setSyncState('ok',`서버 v${res.version} 응답 정상`);alert(`연결 정상 · 백엔드 v${res.version}`);return true}catch(e){setSyncState('bad','서버 연결 실패');alert(apiErrorText(e));return false}
 }
-async function logoutSharedSystem(){clearAccess();cacheRecords=[];remoteConnected=false;setSyncState('busy','로그아웃됨');renderAll();}
-function startAutoRefresh(){if(refreshTimer)clearInterval(refreshTimer);if(isRemoteMode())refreshTimer=setInterval(()=>{if(accessToken()&&!modalMode)refreshFromServer(true)},45000)}
+async function logoutSharedSystem(){clearAccess();cacheRecords=[];remoteConnected=false;currentTab='problem';setSyncState('busy','로그아웃됨');renderAll();updateAuthUI();showLoginGate('로그아웃되었습니다. 다시 로그인해 주세요.');}
+function startAutoRefresh(){if(refreshTimer)clearInterval(refreshTimer);if(isRemoteMode())refreshTimer=setInterval(()=>{updateAuthUI();if(accessToken()&&!modalMode)refreshFromServer(true)},45000)}
 async function refreshFromServer(silent=false){
   if(!isRemoteMode()){loadCacheFromLocal();renderAll();return}
   if(!accessToken()){if(!silent)await loginSharedSystem();return}
@@ -403,9 +448,18 @@ async function localRequireMaster(){await ensureLocalPassword();if(localUnlocked
 async function requireMaster(){return isRemoteMode()?ensureMaster():localRequireMaster()}
 function lockMaster(){if(isRemoteMode())clearMaster();else{sessionStorage.removeItem(LOCAL_AUTH_KEY);updateAuthUI()}}
 async function unlockMaster(){await requireMaster();updateAuthUI();if(isRemoteMode()&&masterToken())refreshBackupUI()}
-function updateAuthUI(){const unlocked=isRemoteMode()?!!masterToken():localUnlocked();const el=byId('authChip');if(el){el.textContent=unlocked?'🔓 마스터 권한 활성':'🔒 마스터 권한 잠김';el.className='chip '+(unlocked?'ok':'warn')}const s=byId('masterState');if(s)s.textContent=unlocked?`현재 활성 · ${AUTH_MINUTES}분 세션`:'현재 잠김'}
-
-function switchTab(tab){currentTab=tab;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));document.querySelectorAll('.tab-page').forEach(x=>x.classList.add('hidden'));byId('tab-'+tab).classList.remove('hidden');renderAll();if(tab==='admin'){updateConnectionUI();renderBackupUIBase()}}
+function updateAuthUI(){
+  const unlocked=isRemoteMode()?!!masterToken():localUnlocked();
+  const el=byId('authChip');if(el){el.textContent=unlocked?'🔓 마스터 권한 활성':'🔒 마스터 권한 잠김';el.className='chip '+(unlocked?'ok':'warn')+(unlocked?'':' hidden')}
+  const s=byId('masterState');if(s)s.textContent=unlocked?`현재 활성 · ${AUTH_MINUTES}분 세션`:'현재 잠김';
+  const adminTab=byId('adminTabBtn');if(adminTab)adminTab.classList.toggle('hidden',!unlocked);
+  const adminBtn=byId('adminUnlockBtn');if(adminBtn)adminBtn.textContent=unlocked?'🛠 관리자 열기':'🔐 관리자 인증';
+  const uc=byId('userChip');if(uc)uc.textContent=operatorName()?`👤 ${operatorName()}`:'👤 미로그인';
+  if(!unlocked && currentTab==='admin')activateTabDom('problem');
+}
+function activateTabDom(tab){currentTab=tab;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));document.querySelectorAll('.tab-page').forEach(x=>x.classList.add('hidden'));const page=byId('tab-'+tab);if(page)page.classList.remove('hidden')}
+async function openAdminArea(){if(!(await ensureMaster()))return;updateAuthUI();activateTabDom('admin');updateConnectionUI();renderBackupUIBase();renderAll()}
+async function switchTab(tab){if(tab==='admin'){if(!(isRemoteMode()?masterToken():localUnlocked())){await openAdminArea();return}}activateTabDom(tab);renderAll();if(tab==='admin'){updateConnectionUI();renderBackupUIBase()}}
 function typeClass(v){return v==='재정'?'t-fin':v==='분쟁'?'t-dispute':'t-other'}
 function fillSelect(id,values,firstLabel){const el=byId(id);if(!el)return;const cur=el.value;el.innerHTML=`<option value="">${firstLabel}</option>`+values.map(v=>`<option value="${escAttr(v)}">${esc(v)}</option>`).join('');el.value=values.includes(cur)?cur:''}
 function problemVisible(){const q=byId('pSearch').value.trim().toLowerCase(),type=byId('pTypeFilter').value,dept=byId('pDeptFilter').value;return activeProblem().filter(r=>{if(type&&r.problemType!==type)return false;if(dept&&r.dept!==dept)return false;const hay=`${r.name} ${r.reg} ${r.ward} ${r.doctor} ${r.dept} ${r.problemType} ${r.issue} ${r.plan} ${r.other} ${r.owner}`.toLowerCase();return !q||hay.includes(q)}).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))}
@@ -413,6 +467,7 @@ function vipVisible(){const q=byId('vSearch').value.trim().toLowerCase(),cls=byI
 function archiveVisible(){const q=byId('aSearch').value.trim().toLowerCase(),kind=byId('aKindFilter').value;return archived().filter(r=>{if(kind&&r.kind!==kind)return false;const main=r.kind==='problem'?`${r.issue} ${r.plan}`:`${r.request} ${r.caution}`;const hay=`${r.name} ${r.reg} ${r.ward} ${r.dept} ${r.owner} ${r.finalResolver} ${main}`.toLowerCase();return !q||hay.includes(q)}).sort((a,b)=>(b.closedAt||b.updatedAt||'').localeCompare(a.closedAt||a.updatedAt||''))}
 
 function renderAll(){
+  if(isRemoteMode()&&!accessToken())cacheRecords=[];
   const p=activeProblem(),v=activeVip(),a=archived();
   byId('problemTabCount').textContent=p.length;byId('vipTabCount').textContent=v.length;byId('archiveTabCount').textContent=a.length;
   byId('pSumAll').innerHTML=`${p.length}<small>명</small>`;byId('pSumFin').innerHTML=`${p.filter(x=>x.problemType==='재정').length}<small>명</small>`;byId('pSumDispute').innerHTML=`${p.filter(x=>x.problemType==='분쟁').length}<small>명</small>`;byId('pSumOther').innerHTML=`${p.filter(x=>!['재정','분쟁'].includes(x.problemType)).length}<small>명</small>`;
@@ -420,13 +475,22 @@ function renderAll(){
   fillSelect('pDeptFilter',[...new Set(p.map(x=>x.dept).filter(Boolean))].sort(),'진료과 전체');fillSelect('vDeptFilter',[...new Set(v.map(x=>x.dept).filter(Boolean))].sort(),'진료과 전체');fillSelect('vClassFilter',[...new Set(v.map(x=>x.vipClass).filter(Boolean))].sort(),'VIP 구분 전체');
   const pi=problemVisible(),vi=vipVisible(),ai=archiveVisible();byId('pVisibleCount').textContent=pi.length;byId('vVisibleCount').textContent=vi.length;byId('aVisibleCount').textContent=ai.length;
   byId('problemTbody').innerHTML=pi.map(problemRow).join('');byId('vipTbody').innerHTML=vi.map(vipRow).join('');byId('archiveTbody').innerHTML=ai.map(archiveRow).join('');
+  byId('problemMobile').innerHTML=pi.length?pi.map(problemMobileCard).join(''):'<div class="empty">조건에 맞는 문제환자가 없습니다.</div>';
+  byId('vipMobile').innerHTML=vi.length?vi.map(vipMobileCard).join(''):'<div class="empty">조건에 맞는 VIP 환자가 없습니다.</div>';
+  byId('archiveMobile').innerHTML=ai.length?ai.map(archiveMobileCard).join(''):'<div class="empty">종결된 자료가 없습니다.</div>';
   byId('problemEmpty').classList.toggle('hidden',pi.length>0);byId('vipEmpty').classList.toggle('hidden',vi.length>0);byId('archiveEmpty').classList.toggle('hidden',ai.length>0);updateAuthUI();
 }
 function versionMeta(r){return `<span class="meta">수정 ${fmt(r.updatedAt)}${r.updatedBy?` · ${esc(r.updatedBy)}`:''}${r.version?` · v${r.version}`:''}</span>`}
-function problemRow(r,i){return `<tr><td class="c-no">${i+1}</td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td><span class="two">${esc(r.doctor||'-')}</span></td><td>${esc(r.dept||'-')}</td><td><span class="pill ${typeClass(r.problemType)}">${esc(r.problemType||'기타')}</span></td><td title="${escAttr(r.issue)}"><span class="three">${esc(r.issue||'-')}</span>${versionMeta(r)}</td><td title="${escAttr(r.plan)}"><span class="three">${esc(r.plan||'-')}</span></td><td title="${escAttr(r.other)}"><span class="two">${esc(r.other||'-')}</span></td><td><span class="two">${esc(r.owner||'-')}</span></td><td class="actions"><button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="closeRecord('${escAttr(r.id)}')">종결</button><button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button></td></tr>`}
-function vipRow(r,i){return `<tr><td class="c-no">${i+1}</td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td><span class="two">${esc(r.doctor||'-')}</span></td><td>${esc(r.dept||'-')}</td><td><span class="pill t-vip">${esc(r.vipClass||'기타')}</span></td><td title="${escAttr(r.request)}"><span class="three">${esc(r.request||'-')}</span>${versionMeta(r)}</td><td title="${escAttr(r.caution)}"><span class="three">${esc(r.caution||'-')}</span></td><td title="${escAttr(r.other)}"><span class="two">${esc(r.other||'-')}</span></td><td><span class="two">${esc(r.owner||'-')}</span></td><td class="actions"><button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="closeRecord('${escAttr(r.id)}')">종결</button><button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button></td></tr>`}
-function archiveRow(r,i){const main=r.kind==='problem'?r.issue:r.request;const plan=r.kind==='problem'?r.plan:r.caution;return `<tr><td class="c-no">${i+1}</td><td><span class="pill ${r.kind==='vip'?'t-vip':'t-other'}">${r.kind==='problem'?'문제환자':'VIP'}</span></td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td>${esc(r.dept||'-')}</td><td title="${escAttr(main)}"><span class="three">${esc(main||'-')}</span></td><td title="${escAttr(plan)}"><span class="three">${esc(plan||'-')}</span></td><td>${esc(r.owner||'-')}</td><td><span class="final-resolver">${esc(r.finalResolver||'-')}</span></td><td>${fmt(r.closedAt)}</td><td class="actions"><button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="restoreRecord('${escAttr(r.id)}')">복원</button><button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button></td></tr>`}
-
+function hasMasterUI(){return isRemoteMode()?!!masterToken():localUnlocked()}
+function activeActions(r){return hasMasterUI()?`<button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="closeRecord('${escAttr(r.id)}')">종결</button><button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button>`:'<span class="master-only-note">마스터 전용</span>'}
+function archiveActions(r){return hasMasterUI()?`<button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="restoreRecord('${escAttr(r.id)}')">복원</button><button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button>`:'<span class="master-only-note">마스터 전용</span>'}
+function problemRow(r,i){return `<tr><td class="c-no">${i+1}</td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td><span class="two">${esc(r.doctor||'-')}</span></td><td>${esc(r.dept||'-')}</td><td><span class="pill ${typeClass(r.problemType)}">${esc(r.problemType||'기타')}</span></td><td title="${escAttr(r.issue)}"><span class="three">${esc(r.issue||'-')}</span>${versionMeta(r)}</td><td title="${escAttr(r.plan)}"><span class="three">${esc(r.plan||'-')}</span></td><td title="${escAttr(r.other)}"><span class="two">${esc(r.other||'-')}</span></td><td><span class="two">${esc(r.owner||'-')}</span></td><td class="actions">${activeActions(r)}</td></tr>`}
+function vipRow(r,i){return `<tr><td class="c-no">${i+1}</td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td><span class="two">${esc(r.doctor||'-')}</span></td><td>${esc(r.dept||'-')}</td><td><span class="pill t-vip">${esc(r.vipClass||'기타')}</span></td><td title="${escAttr(r.request)}"><span class="three">${esc(r.request||'-')}</span>${versionMeta(r)}</td><td title="${escAttr(r.caution)}"><span class="three">${esc(r.caution||'-')}</span></td><td title="${escAttr(r.other)}"><span class="two">${esc(r.other||'-')}</span></td><td><span class="two">${esc(r.owner||'-')}</span></td><td class="actions">${activeActions(r)}</td></tr>`}
+function archiveRow(r,i){const main=r.kind==='problem'?r.issue:r.request;const plan=r.kind==='problem'?r.plan:r.caution;return `<tr><td class="c-no">${i+1}</td><td><span class="pill ${r.kind==='vip'?'t-vip':'t-other'}">${r.kind==='problem'?'문제환자':'VIP'}</span></td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td>${esc(r.dept||'-')}</td><td title="${escAttr(main)}"><span class="three">${esc(main||'-')}</span></td><td title="${escAttr(plan)}"><span class="three">${esc(plan||'-')}</span></td><td>${esc(r.owner||'-')}</td><td><span class="final-resolver">${esc(r.finalResolver||'-')}</span></td><td>${fmt(r.closedAt)}</td><td class="actions">${archiveActions(r)}</td></tr>`}
+function mobileField(label,value,full=false){return `<div class="mobile-field${full?' full':''}"><span class="mobile-label">${label}</span><div class="mobile-value">${esc(value||'-')}</div></div>`}
+function problemMobileCard(r,i){return `<div class="mobile-card"><div class="mobile-card-head"><div><div class="mobile-card-name">${esc(r.name)}</div><div class="mobile-card-reg">${esc(r.reg||'-')} · ${esc(r.ward||'-')}</div></div><span class="pill ${typeClass(r.problemType)}">${esc(r.problemType||'기타')}</span></div><div class="mobile-card-grid">${mobileField('진료과 / 교수',`${r.dept||'-'} / ${r.doctor||'-'}`)}${mobileField('담당자',r.owner)}${mobileField('문제 내용',r.issue,true)}${mobileField('퇴원·사망 시 대응',r.plan,true)}${r.other?mobileField('기타',r.other,true):''}</div><div class="mobile-meta">${versionMeta(r)}</div><div class="mobile-actions">${activeActions(r)}</div></div>`}
+function vipMobileCard(r,i){return `<div class="mobile-card"><div class="mobile-card-head"><div><div class="mobile-card-name">${esc(r.name)}</div><div class="mobile-card-reg">${esc(r.reg||'-')} · ${esc(r.ward||'-')}</div></div><span class="pill t-vip">${esc(r.vipClass||'기타')}</span></div><div class="mobile-card-grid">${mobileField('진료과 / 교수',`${r.dept||'-'} / ${r.doctor||'-'}`)}${mobileField('담당자',r.owner)}${mobileField('요청사항',r.request,true)}${mobileField('주의·대응사항',r.caution,true)}${r.other?mobileField('기타',r.other,true):''}</div><div class="mobile-meta">${versionMeta(r)}</div><div class="mobile-actions">${activeActions(r)}</div></div>`}
+function archiveMobileCard(r,i){const main=r.kind==='problem'?r.issue:r.request,plan=r.kind==='problem'?r.plan:r.caution;return `<div class="mobile-card"><div class="mobile-card-head"><div><div class="mobile-card-name">${esc(r.name)}</div><div class="mobile-card-reg">${esc(r.reg||'-')} · ${esc(r.ward||'-')}</div></div><span class="pill ${r.kind==='vip'?'t-vip':'t-other'}">${r.kind==='problem'?'문제환자':'VIP'}</span></div><div class="mobile-card-grid">${mobileField('진료과',r.dept)}${mobileField('담당자',r.owner)}${mobileField('주요 내용',main,true)}${mobileField('대응·주의사항',plan,true)}${mobileField('최종 해결자',r.finalResolver)}${mobileField('종결일',fmt(r.closedAt))}</div><div class="mobile-actions">${archiveActions(r)}</div></div>`}
 function problemForm(r={}){return `<div class="form-grid">
   <div><label class="required">환자명</label><input id="m_name" value="${escAttr(r.name||'')}" placeholder="예: 홍길동"></div>
   <div><label class="required">등록번호</label><input id="m_reg" value="${escAttr(r.reg||'')}" placeholder="예: 012345678"></div>
@@ -509,8 +573,11 @@ async function changeMasterPassword(){if(isRemoteMode()){if(!(await ensureMaster
 async function init(){
   await ensureLocalPassword();updateConnectionUI();updateAuthUI();
   if(isRemoteMode()){
-    try{const ping=await apiRaw('ping');if(!ping.initialized)throw new Error('Apps Script에서 setupSystem()을 먼저 실행해 주세요.');setSyncState('busy','접속 대기');if(accessToken()){await refreshFromServer()}else{const ok=await loginSharedSystem();if(!ok){cacheRecords=[];renderAll()}}}catch(e){setSyncState('bad','서버 연결 실패');cacheRecords=[];renderAll();console.error(e)}
-  }else{loadCacheFromLocal();localEnsureDailyBackup();renderAll();}
+    try{
+      const ping=await apiRaw('ping');if(!ping.initialized)throw new Error('Apps Script에서 setupSystem()을 먼저 실행해 주세요.');setSyncState('busy','접속 대기');
+      if(accessToken()&&operatorName()){hideLoginGate();await refreshFromServer()}else{clearAccess();cacheRecords=[];renderAll();await loginSharedSystem(true)}
+    }catch(e){setSyncState('bad','서버 연결 실패');cacheRecords=[];renderAll();showLoginGate('공용 서버 연결을 확인해 주세요.');console.error(e)}
+  }else{hideLoginGate();loadCacheFromLocal();localEnsureDailyBackup();renderAll();}
   startAutoRefresh();
 }
 init();
