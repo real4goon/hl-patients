@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>원무팀 문제환자 · VIP 공유 v0.6</title>
+<style>
+:root{
+  --bg:#e8edf4;--panel:#f8fbff;--panel2:#eef3f8;--ink:#172033;--muted:#5f6b7d;--line:#cbd5e1;
+  --navy:#183153;--navy2:#294a72;--blue:#edf4ff;--blueink:#315b8a;--green:#197a50;--greenbg:#eaf7f0;
+  --amber:#8a5a00;--amberbg:#fff6df;--red:#a12a22;--redbg:#fff0ee;--purple:#664a9b;--purplebg:#f2edff;
+  --shadow:0 8px 26px rgba(24,49,83,.11)
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Arial,"Noto Sans KR","맑은 고딕",sans-serif;color:var(--ink)}
+button,input,select,textarea{font:inherit}
+.wrap{max-width:1480px;margin:auto;padding:26px 22px 60px}
+.hero{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;margin-bottom:16px}
+.hero h1{font-size:calc(27px + 2pt);margin:0 0 6px;color:#13243a;letter-spacing:-.6px}.version{font-size:calc(13px + 2pt);color:#758195;font-weight:500;margin-left:8px}.sub{font-size:calc(13px + 2pt);color:var(--muted);line-height:1.55}
+.hero-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.chip{padding:7px 11px;border-radius:999px;border:1px solid #d9e2ec;background:#eaf0f8;color:#40536c;font-size:calc(11.5px + 2pt);white-space:nowrap}.chip.warn{background:#fff8e6;border-color:#f1dfaa;color:#725815}.chip.ok{background:var(--greenbg);border-color:#cfe8d9;color:var(--green)}
+.tabs{display:flex;gap:5px;margin-bottom:15px;background:#e9eef5;border:1px solid #dce4ed;border-radius:13px;padding:5px;overflow-x:auto}.tab{border:0;background:transparent;color:#536176;font-weight:900;font-size:calc(12.5px + 2pt);padding:9px 13px;border-radius:9px;cursor:pointer;white-space:nowrap}.tab.active{background:#fff;color:var(--navy);box-shadow:0 2px 8px rgba(24,49,83,.08)}.tab-badge{display:inline-block;min-width:21px;margin-left:5px;padding:2px 6px;background:#edf1f6;border-radius:999px;font-size:calc(10px + 2pt);color:#617086}.tab.active .tab-badge{background:#eaf0f8;color:#183153}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+h2{font-size:calc(17px + 2pt);margin:0;color:#1d2c41}.section-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px}.caption{font-size:calc(11.5px + 2pt);color:var(--muted);margin-top:4px}
+.guide{background:linear-gradient(180deg,#fff,#f8fafc);border:1px solid #dfe6ee;border-radius:14px;padding:13px 15px;margin-bottom:16px}.guide-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.guide-item{border:1px solid #e7ebf1;background:#fff;border-radius:10px;padding:9px 10px;font-size:calc(10.8px + 2pt);color:#69768a;line-height:1.45}.guide-item b{display:block;color:#273a52;font-size:calc(11.3px + 2pt);margin-bottom:2px}
+button{border:0;border-radius:10px;padding:9px 13px;font-size:calc(12.3px + 2pt);font-weight:800;cursor:pointer;transition:.15s}button:hover{transform:translateY(-1px)}.primary{background:var(--navy);color:#fff}.primary:hover{background:#102844}.secondary{background:#eef2f6;color:#33445a}.danger{background:var(--redbg);color:var(--red)}.ghost{background:#fff;border:1px solid #d9e1ea;color:#43546a}.purple{background:var(--purplebg);color:var(--purple)}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.small{font-size:calc(11px + 2pt);color:#8490a0}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 14px}.sum{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px 14px}.sum-label{font-size:calc(11px + 2pt);color:#7a8595;margin-bottom:5px}.sum-value{font-size:calc(20px + 2pt);font-weight:900;color:#20334c}.sum-value small{font-size:calc(11px + 2pt);color:#8a94a3;font-weight:600;margin-left:3px}
+.toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:13px}.filters{display:flex;gap:7px;flex:1;align-items:center;flex-wrap:wrap}.filters input{max-width:330px}.filters select{max-width:190px}
+input,select,textarea{width:100%;border:1px solid #d4dbe5;border-radius:10px;padding:9px 11px;background:#fff;color:var(--ink);font-size:calc(13px + 2pt);outline:none}textarea{min-height:86px;resize:vertical}input:focus,select:focus,textarea:focus{border-color:#7d96b5;box-shadow:0 0 0 3px rgba(39,71,110,.08)}label{display:block;font-size:calc(11.5px + 2pt);font-weight:800;color:#596579;margin-bottom:6px}
+.table-wrap{border:1px solid #dfe5ed;border-radius:14px;overflow:hidden;background:#fff}.share-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}.share-table th{font-size:calc(10.3px + 2pt);color:#748094;text-align:left;padding:9px 7px;background:#fbfcfe;border-bottom:1px solid #e9edf2;white-space:nowrap}.share-table td{font-size:calc(11.1px + 2pt);line-height:1.32;padding:8px 7px;border-bottom:1px solid #edf0f4;vertical-align:top;color:#344054;overflow:hidden}.share-table tbody tr:last-child td{border-bottom:0}.share-table tbody tr:hover td{background:#fbfdff}
+.c-no{width:3%;text-align:center!important}.c-patient{width:10%}.c-ward{width:7%}.c-doc{width:8%}.c-dept{width:5%}.c-type{width:7%}.c-issue{width:21%}.c-plan{width:19%}.c-other{width:9%}.c-owner{width:9%}.c-closed{width:7%}.c-manage{width:12%}
+.two{display:block;max-height:2.7em;overflow:hidden;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}.three{display:block;max-height:4em;overflow:hidden;white-space:normal;word-break:keep-all;overflow-wrap:anywhere}.meta{display:block;color:#8993a2;font-size:calc(9.8px + 2pt);margin-top:3px}.patient-name{font-weight:900;color:#1f334e}.reg{font-size:calc(10px + 2pt);color:#7e8998;margin-top:2px}.pill{display:inline-block;border-radius:999px;padding:3px 7px;font-size:calc(10px + 2pt);font-weight:900;white-space:nowrap}.t-fin{background:#edf4ff;color:#315b8a}.t-dispute{background:var(--redbg);color:var(--red)}.t-other{background:#eef2f6;color:#58667a}.t-vip{background:var(--purplebg);color:var(--purple)}.st-live{background:#edf4ff;color:#315b8a}.st-watch{background:#fff6df;color:#8a5a00}.st-done{background:var(--greenbg);color:var(--green)}
+.final-resolver{display:inline-block;background:#eaf7f0;color:#197a50;border:1px solid #cfe8d9;border-radius:8px;padding:4px 7px;font-weight:900}.actions{display:flex;gap:3px;justify-content:center;flex-wrap:wrap}.actions button{font-size:calc(9.5px + 2pt);padding:4px 6px;border-radius:7px}.empty{padding:35px;text-align:center;color:#7d8898;background:#fafbfd}.hidden{display:none!important}
+.admin-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}.admin-box{border:1px solid #e0e6ed;border-radius:13px;padding:15px;background:#fbfcfe}.admin-box h3{font-size:calc(13px + 2pt);margin:0 0 7px;color:#263b56}.admin-box p{font-size:calc(11.3px + 2pt);line-height:1.55;color:#6d7889;margin:0 0 10px}.security-note{padding:11px 13px;background:#fff8e6;border:1px solid #f1dfaa;border-radius:10px;color:#6d5615;font-size:calc(11px + 2pt);line-height:1.55;margin-top:10px}
+.modal-backdrop{position:fixed;inset:0;background:rgba(20,31,48,.48);display:none;align-items:center;justify-content:center;padding:18px;z-index:999}.modal-backdrop.show{display:flex}.modal{width:min(980px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:17px;box-shadow:0 25px 80px rgba(0,0,0,.25);border:1px solid #dfe5ed}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #e7ebf0;position:sticky;top:0;background:#fff;z-index:2}.modal-title{font-size:calc(17px + 2pt);font-weight:900;color:#1c304b}.modal-body{padding:18px}.modal-foot{display:flex;justify-content:flex-end;gap:7px;padding:14px 18px;border-top:1px solid #e7ebf0;position:sticky;bottom:0;background:#fff}.xbtn{width:32px;height:32px;border-radius:999px;padding:0;background:#eef2f6;color:#43546a;font-size:calc(16px + 2pt)}.form-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px}.span2{grid-column:span 2}.span3{grid-column:span 3}.full{grid-column:1/-1}.required::after{content:' *';color:#b42318}
+
+.footer{text-align:center;color:#7d8998;font-size:calc(11px + 2pt);line-height:1.7;padding:0 18px 25px}
+/* v0.3 식별성 강화 */
+#tab-problem .card{background:#f5f9ff;border-color:#b9cbe0;border-top:4px solid #315b8a}
+#tab-vip .card{background:#faf7ff;border-color:#d1c3ea;border-top:4px solid #7654a8}
+#tab-archive .card{background:#f5faf7;border-color:#bdd9c9;border-top:4px solid #2f7a55}
+#tab-admin .card{background:#f7f8fb;border-color:#c6cfda;border-top:4px solid #40536c}
+#tab-problem .share-table th{background:#e7f0fb;color:#294f79}
+#tab-vip .share-table th{background:#eee7fa;color:#61458d}
+#tab-archive .share-table th{background:#e5f1e9;color:#32694d}
+.share-table tbody tr:nth-child(even) td{background:rgba(238,243,248,.55)}
+.share-table tbody tr:hover td{background:#e9f2fb!important}
+#tab-vip .share-table tbody tr:hover td{background:#f0eafd!important}
+#tab-archive .share-table tbody tr:hover td{background:#eaf4ed!important}
+.summary .sum{background:#fff;border-color:#cbd6e2;box-shadow:0 2px 8px rgba(24,49,83,.045)}
+#tab-problem .summary .sum:nth-child(2){background:#edf4ff}#tab-problem .summary .sum:nth-child(3){background:#fff0ee}#tab-problem .summary .sum:nth-child(4){background:#fff6df}
+#tab-vip .summary .sum{background:#f5f0ff}
+.tabs{background:#d8e1ec;border-color:#c3cfdd}.tab{color:#43536a}.tab.active{background:#fdfefe;border:1px solid #becbd9;box-shadow:0 3px 10px rgba(24,49,83,.12)}
+.guide{background:linear-gradient(180deg,#f6f9fc,#edf2f7);border-color:#c8d3df}.guide-item{background:#fbfdff;border-color:#d4dde7}
+.modal{background:#f6f9fc}.modal-head,.modal-foot{background:#eef3f8}.modal-body{background:#f8fbfe}
+.backup-list{margin-top:10px;border:1px solid #d7e0e9;border-radius:10px;overflow:hidden;background:#fff}.backup-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #edf1f5}.backup-row:last-child{border-bottom:0}.backup-date{font-weight:800;color:#31465f}.backup-meta{color:#7b8797}.backup-empty{padding:10px;color:#7b8797;background:#f8fafc}
+
+
+/* v0.6 공용서버 관리 */
+.server-box{background:#eef6ff;border-color:#b8cce2}.server-box input{background:#fff}.full-admin{grid-column:1/-1}.admin-box label{font-size:calc(10.8px + 2pt)}
+#syncChip{cursor:default}.backup-row .row{justify-content:flex-end}.security-note b{color:#563f0c}
+@media(max-width:1100px){.full-admin{grid-column:auto}}
+@media(max-width:1100px){.form-grid{grid-template-columns:repeat(2,1fr)}.span2,.span3{grid-column:auto}.share-table th{font-size:calc(9.5px + 2pt);padding:7px 5px}.share-table td{font-size:calc(10.2px + 2pt);padding:6px 5px}.actions button{font-size:calc(8.9px + 2pt);padding:4px 4px}.admin-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.wrap{padding:17px 10px 48px}.hero{flex-direction:column;align-items:flex-start}.guide-grid,.summary,.form-grid{grid-template-columns:1fr}.filters input,.filters select{max-width:none;flex:1 1 100%}.card{padding:14px}.table-wrap{overflow:auto}.share-table{min-width:1180px}.hero-tools{justify-content:flex-start}.modal-backdrop{padding:6px}.modal{max-height:97vh;border-radius:12px}.tabs{border-radius:10px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <h1>원무팀 문제환자 · VIP 공유 <span class="version">v0.6 · 공용서버 연동</span></h1>
+      <div class="sub">야간·휴일·공휴일 근무자가 여러 PC에서 동일한 문제환자·VIP 데이터를 실시간 공유합니다.</div>
+    </div>
+    <div class="hero-tools">
+      <button class="secondary" onclick="refreshFromServer(false)" title="공용 서버의 최신 자료를 다시 불러옵니다">↻ 새로고침</button>
+      <div class="chip" id="syncChip">💻 연결 확인 중</div>
+      <div class="chip warn" id="authChip">🔒 마스터 권한 잠김</div>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="problem" onclick="switchTab('problem')">문제환자 <span class="tab-badge" id="problemTabCount">0</span></button>
+    <button class="tab" data-tab="vip" onclick="switchTab('vip')">VIP 관리 <span class="tab-badge" id="vipTabCount">0</span></button>
+    <button class="tab" data-tab="archive" onclick="switchTab('archive')">종결보관함 <span class="tab-badge" id="archiveTabCount">0</span></button>
+    <button class="tab" data-tab="admin" onclick="switchTab('admin')">관리자</button>
+  </nav>
+
+  <div class="guide" id="mainGuide">
+    <div class="guide-grid">
+      <div class="guide-item"><b>① 등록은 팝업</b>목록 화면을 유지하면서 필요한 경우에만 신규 입력창을 엽니다.</div>
+      <div class="guide-item"><b>② 수정·삭제는 마스터 권한</b>기존 자료 변경, 삭제, 종결·복원은 마스터 비밀번호 확인 후 가능합니다.</div>
+      <div class="guide-item"><b>③ 공용 저장 · 서버 백업</b>GitHub는 화면만 담당하고, 실제 환자자료와 00:00 기준 백업은 공용 서버에 저장합니다.</div>
+    </div>
+  </div>
+
+  <section id="tab-problem" class="tab-page">
+    <div class="card">
+      <div class="section-head">
+        <div><h2>문제환자 공유 현황</h2><div class="caption">문제유형은 재정 / 분쟁 / 기타로 구분합니다. 종결된 환자는 종결보관함으로 이동합니다.</div></div>
+        <div class="row">
+          <button class="primary" onclick="openProblemModal()">+ 문제환자 등록</button>
+          <button class="secondary" onclick="printCurrent('problem')">A4 인쇄</button>
+        </div>
+      </div>
+      <div class="summary">
+        <div class="sum"><div class="sum-label">현재 공유</div><div class="sum-value" id="pSumAll">0<small>명</small></div></div>
+        <div class="sum"><div class="sum-label">재정</div><div class="sum-value" id="pSumFin">0<small>명</small></div></div>
+        <div class="sum"><div class="sum-label">분쟁</div><div class="sum-value" id="pSumDispute">0<small>명</small></div></div>
+        <div class="sum"><div class="sum-label">기타</div><div class="sum-value" id="pSumOther">0<small>명</small></div></div>
+      </div>
+      <div class="toolbar">
+        <div class="filters">
+          <input id="pSearch" placeholder="환자명 · 등록번호 · 병실 · 교수 · 문제내용 검색" oninput="renderAll()">
+          <select id="pTypeFilter" onchange="renderAll()"><option value="">문제유형 전체</option><option>재정</option><option>분쟁</option><option>기타</option></select>
+          <select id="pDeptFilter" onchange="renderAll()"><option value="">진료과 전체</option></select>
+          <button class="secondary" onclick="resetProblemFilters()">필터 초기화</button>
+        </div>
+        <div class="small">현재 표시 <b id="pVisibleCount">0</b>명</div>
+      </div>
+      <div class="table-wrap">
+        <table class="share-table">
+          <thead><tr><th class="c-no">No.</th><th class="c-patient">환자/등록번호</th><th class="c-ward">병실</th><th class="c-doc">교수</th><th class="c-dept">과</th><th class="c-type">문제유형</th><th class="c-issue">문제 내용</th><th class="c-plan">퇴원·사망 시 대응</th><th class="c-other">기타</th><th class="c-owner">담당자</th><th class="c-manage">관리</th></tr></thead>
+          <tbody id="problemTbody"></tbody>
+        </table>
+        <div class="empty hidden" id="problemEmpty">조건에 맞는 문제환자가 없습니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-vip" class="tab-page hidden">
+    <div class="card">
+      <div class="section-head">
+        <div><h2>VIP 관리</h2><div class="caption">문제환자와 별도 목록으로 관리하며, 특별 요청사항과 주의사항을 중심으로 공유합니다.</div></div>
+        <div class="row">
+          <button class="purple" onclick="openVipModal()">+ VIP 등록</button>
+          <button class="secondary" onclick="printCurrent('vip')">A4 인쇄</button>
+        </div>
+      </div>
+      <div class="summary">
+        <div class="sum"><div class="sum-label">현재 관리</div><div class="sum-value" id="vSumAll">0<small>명</small></div></div>
+        <div class="sum"><div class="sum-label">재단·병원</div><div class="sum-value" id="vSumOrg">0<small>명</small></div></div>
+        <div class="sum"><div class="sum-label">외부기관</div><div class="sum-value" id="vSumExternal">0<small>명</small></div></div>
+        <div class="sum"><div class="sum-label">오늘 수정</div><div class="sum-value" id="vSumToday">0<small>명</small></div></div>
+      </div>
+      <div class="toolbar">
+        <div class="filters">
+          <input id="vSearch" placeholder="환자명 · 등록번호 · 병실 · VIP구분 · 요청사항 검색" oninput="renderAll()">
+          <select id="vClassFilter" onchange="renderAll()"><option value="">VIP 구분 전체</option></select>
+          <select id="vDeptFilter" onchange="renderAll()"><option value="">진료과 전체</option></select>
+          <button class="secondary" onclick="resetVipFilters()">필터 초기화</button>
+        </div>
+        <div class="small">현재 표시 <b id="vVisibleCount">0</b>명</div>
+      </div>
+      <div class="table-wrap">
+        <table class="share-table">
+          <thead><tr><th class="c-no">No.</th><th class="c-patient">환자/등록번호</th><th class="c-ward">병실</th><th class="c-doc">교수</th><th class="c-dept">과</th><th class="c-type">VIP 구분</th><th class="c-issue">요청사항</th><th class="c-plan">주의·대응사항</th><th class="c-other">기타</th><th class="c-owner">담당자</th><th class="c-manage">관리</th></tr></thead>
+          <tbody id="vipTbody"></tbody>
+        </table>
+        <div class="empty hidden" id="vipEmpty">조건에 맞는 VIP 환자가 없습니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-archive" class="tab-page hidden">
+    <div class="card">
+      <div class="section-head">
+        <div><h2>종결보관함</h2><div class="caption">문제환자와 VIP 종결 자료를 함께 보관합니다. 복원·삭제는 마스터 권한이 필요합니다.</div></div>
+        <div class="row"><button class="secondary" onclick="printCurrent('archive')">A4 인쇄</button></div>
+      </div>
+      <div class="toolbar">
+        <div class="filters">
+          <input id="aSearch" placeholder="환자명 · 등록번호 · 담당자 · 최종 해결자 검색" oninput="renderAll()">
+          <select id="aKindFilter" onchange="renderAll()"><option value="">구분 전체</option><option value="problem">문제환자</option><option value="vip">VIP</option></select>
+          <button class="secondary" onclick="resetArchiveFilters()">필터 초기화</button>
+        </div>
+        <div class="small">현재 표시 <b id="aVisibleCount">0</b>명</div>
+      </div>
+      <div class="table-wrap">
+        <table class="share-table">
+          <thead><tr><th class="c-no">No.</th><th class="c-type">구분</th><th class="c-patient">환자/등록번호</th><th class="c-ward">병실</th><th class="c-dept">과</th><th class="c-issue">주요 내용</th><th class="c-plan">대응·주의사항</th><th class="c-owner">담당자</th><th class="c-owner">최종 해결자</th><th class="c-closed">종결일</th><th class="c-manage">관리</th></tr></thead>
+          <tbody id="archiveTbody"></tbody>
+        </table>
+        <div class="empty hidden" id="archiveEmpty">종결된 자료가 없습니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-admin" class="tab-page hidden">
+    <div class="card">
+      <div class="section-head"><div><h2>관리자</h2><div class="caption">공용 서버 연결, 접근권한, 백업·복원, 데이터 이관을 관리합니다.</div></div></div>
+      <div class="admin-grid">
+        <div class="admin-box server-box">
+          <h3>① 공용 서버 연결</h3>
+          <p>공용 Apps Script 서버 주소가 <b>기본 연결</b>되어 있습니다. 재배포로 주소가 바뀐 경우에만 아래 주소를 수정하세요. GitHub에는 화면 코드만 두고 환자 데이터는 연결된 Google Sheet에 저장합니다.</p>
+          <label>Apps Script 웹 앱 주소</label>
+          <input id="apiUrlInput" placeholder="https://script.google.com/macros/s/...../exec">
+          <label style="margin-top:10px">현재 사용자 이름 <span class="small">(서버 변경이력 표시용)</span></label>
+          <input id="operatorInput" placeholder="예: 김영선 / 응급원무 홍길동">
+          <div class="row" style="margin-top:10px"><button class="primary" onclick="saveConnectionSettings()">설정 저장 · 연결</button><button class="secondary" onclick="testConnection()">서버 테스트</button><button class="ghost" onclick="loginSharedSystem(true)">접속 재로그인</button><button class="ghost" onclick="logoutSharedSystem()">로그아웃</button></div>
+          <div class="small" id="serverState" style="margin-top:9px">연결 상태 확인 중</div>
+        </div>
+        <div class="admin-box">
+          <h3>② 권한 관리</h3>
+          <p><b>접속 비밀번호</b>는 자료 열람·신규 등록에 필요하고, <b>마스터 비밀번호</b>는 수정·삭제·종결·복원·백업관리에 추가로 필요합니다.</p>
+          <div class="row"><button class="primary" onclick="unlockMaster()">마스터 권한 열기</button><button class="secondary" onclick="lockMaster()">즉시 잠금</button></div>
+          <div class="small" id="masterState" style="margin-top:9px">현재 잠김</div>
+          <div class="row" style="margin-top:10px"><button class="secondary" onclick="changeAccessPassword()">접속 비밀번호 변경</button><button class="secondary" onclick="changeMasterPassword()">마스터 비밀번호 변경</button></div>
+          <div class="small" style="margin-top:8px">초기 테스트값은 접속/마스터 모두 <b>1234</b>입니다. 공용 서버 연결 직후 각각 6자 이상으로 변경하세요.</div>
+        </div>
+        <div class="admin-box full-admin">
+          <h3>③ 공용 백업 · 복원 센터</h3>
+          <p>공용 서버가 매일 <b>00:00 기준 상태</b>를 최근 30일 보관합니다. 수동 안전백업도 별도로 생성할 수 있으며, 마스터 권한으로 다운로드·전체 복원이 가능합니다.</p>
+          <div class="row"><button class="primary" onclick="refreshBackupUI()">백업 목록 새로고침</button><button class="secondary" onclick="createManualBackup()">현재 상태 안전백업</button><button class="secondary" onclick="exportJSON()">현재 목록 JSON 저장</button><button class="secondary" onclick="document.getElementById('importFile').click()">JSON 가져오기</button><input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(event)"></div>
+          <div id="dailyBackupSummary" class="small" style="margin-top:9px"></div>
+          <div id="dailyBackupList" class="backup-list"></div>
+        </div>
+        <div class="admin-box">
+          <h3>④ 기존 v0.4 자료 서버 이관</h3>
+          <p>이 PC 브라우저에 저장돼 있던 기존 문제환자/VIP 자료를 공용 서버로 한 번에 옮깁니다. 서버 이관 전 자동으로 안전백업을 만듭니다.</p>
+          <div class="small" id="localMigrationInfo" style="margin-bottom:9px"></div>
+          <button class="secondary" onclick="migrateLocalToServer()">이 PC 로컬자료 → 공용서버</button>
+        </div>
+        <div class="admin-box">
+          <h3>⑤ 엑셀용 내보내기</h3>
+          <p>현재 서버에서 불러온 문제환자, VIP, 종결보관함을 각각 CSV로 저장합니다.</p>
+          <div class="row"><button class="secondary" onclick="exportCSV('problem')">문제환자 CSV</button><button class="secondary" onclick="exportCSV('vip')">VIP CSV</button><button class="secondary" onclick="exportCSV('archive')">종결 CSV</button></div>
+        </div>
+      </div>
+      <div class="security-note"><b>공유형 구조:</b> GitHub Pages에는 HTML·CSS·JavaScript 화면 코드만 올립니다. 환자명·등록번호·병실·문제내용은 GitHub 저장소에 넣지 않고 Apps Script가 연결된 별도 공용 저장소에 저장합니다. 실제 병원 운영 적용 전에는 기관의 개인정보·클라우드 사용 정책에 따른 보안 검토가 필요합니다.</div>
+    </div>
+  </section>
+</div>
+
+<div class="footer">Copyright © 2026 한림대학교성심병원 원무팀 김영선 대리</div>
+
+<div class="modal-backdrop" id="recordModal" onclick="backdropClose(event)">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head"><div><div class="modal-title" id="modalTitle">등록</div><div class="caption" id="modalCaption"></div></div><button class="xbtn" onclick="closeModal()">×</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot"><button class="secondary" onclick="closeModal()">취소</button><button class="primary" id="modalSaveBtn" onclick="saveModalRecord()">저장</button></div>
+  </div>
+</div>
+
+<script>
+const APP_VERSION='0.5';
+const DEFAULT_API_URL='https://script.google.com/macros/s/AKfycbz_m7rRSLvBELNzdGe3u5FLpyF0e0Xj3F2-SrPCz8fCmE2aCY99OdECmhcOrMRNLV76JQ/exec'; // 공용 Apps Script 서버
+const API_URL_KEY='hospitalAdminShare_apiUrl_v06';
+const OPERATOR_KEY='hospitalAdminShare_operator_v05';
+const ACCESS_TOKEN_KEY='hospitalAdminShare_accessToken_v05';
+const ACCESS_EXP_KEY='hospitalAdminShare_accessExp_v05';
+const MASTER_TOKEN_KEY='hospitalAdminShare_masterToken_v05';
+const MASTER_EXP_KEY='hospitalAdminShare_masterExp_v05';
+const LOCAL_STORE_KEY='hospitalAdminShare_v02';
+const OLD_STORE_KEY='hospitalProblemPatientShare_v01';
+const LOCAL_PASS_KEY='hospitalAdminShare_masterHash_v02';
+const LOCAL_AUTH_KEY='hospitalAdminShare_masterUntil_v02';
+const LOCAL_BACKUP_KEY='hospitalAdminShare_dailyBackups_v03';
+const LOCAL_BACKUP_META_KEY='hospitalAdminShare_dailyBackupMeta_v03';
+const LOCAL_BACKUP_RETENTION=30;
+const AUTH_MINUTES=15;
+
+let currentTab='problem';
+let modalMode=null;
+let modalKind=null;
+let editingId=null;
+let cacheRecords=[];
+let remoteConnected=false;
+let refreshTimer=null;
+let backupCache=[];
+let lastServerTime='';
+
+const DEMO_DATA={records:[
+  {id:'demo-p1',kind:'problem',name:'홍길동',reg:'012345678',ward:'10병동 1001호',doctor:'김OO 교수',dept:'GI',problemType:'재정',owner:'원무팀 김OO',finalResolver:'',issue:'고액 진료비 미수 관련 보호자와 분납 협의 중.',plan:'퇴원 또는 사망 발생 시 원무팀 담당자에게 먼저 연락 후 수납·서류 절차 진행.',other:'야간 보호자 방문 가능성 있음.',createdAt:'2026-09-01T09:00:00+09:00',updatedAt:'2026-09-01T13:00:00+09:00',closedAt:'',version:1,updatedBy:''},
+  {id:'demo-p2',kind:'problem',name:'김철수',reg:'009876543',ward:'8병동 802호',doctor:'박OO 교수',dept:'OS',problemType:'분쟁',owner:'원무팀 이OO',finalResolver:'',issue:'진료 과정 관련 보호자 이의 제기. 민원 확대 가능성 있어 공유.',plan:'퇴원 전 담당자 또는 관리자 연결. 확인되지 않은 보상 약속은 하지 않도록 주의.',other:'주간 담당자 통화 후 진행사항 업데이트 예정.',createdAt:'2026-09-01T10:00:00+09:00',updatedAt:'2026-09-01T14:00:00+09:00',closedAt:'',version:1,updatedBy:''},
+  {id:'demo-v1',kind:'vip',name:'이영희',reg:'001122334',ward:'12병동 1203호',doctor:'최OO 교수',dept:'CV',vipClass:'외부기관',owner:'원무팀 박OO',finalResolver:'',request:'입·퇴원 수속 시 대기 최소화 요청.',caution:'보호자 문의 시 VIP 담당자에게 우선 공유 후 안내.',other:'예시 데이터 — 실제 사용 전 삭제.',createdAt:'2026-09-01T11:00:00+09:00',updatedAt:'2026-09-01T14:30:00+09:00',closedAt:'',version:1,updatedBy:''}
+]};
+
+function byId(id){return document.getElementById(id)}
+function clone(v){return JSON.parse(JSON.stringify(v))}
+function uuid(){return (crypto.randomUUID?crypto.randomUUID():'id_'+Date.now()+'_'+Math.random().toString(16).slice(2))}
+function nowISO(){return new Date().toISOString()}
+function dateStamp(){const d=new Date();return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`}
+function todayKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function escAttr(s){return esc(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function fmt(dt){if(!dt)return '-';const d=new Date(dt);if(Number.isNaN(d.getTime()))return String(dt);return d.toLocaleString('ko-KR',{year:'2-digit',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})}
+function localDateKey(dt){if(!dt)return '';const d=new Date(dt);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function operatorName(){return (localStorage.getItem(OPERATOR_KEY)||'').trim()}
+function getApiUrl(){return (localStorage.getItem(API_URL_KEY)||DEFAULT_API_URL||'').trim()}
+function isRemoteMode(){return /^https:\/\/script\.google\.com\/.+\/exec(?:\?.*)?$/.test(getApiUrl()) || /^https:\/\/script\.googleusercontent\.com\//.test(getApiUrl())}
+function tokenValid(expKey){return new Date(sessionStorage.getItem(expKey)||0).getTime()>Date.now()+5000}
+function accessToken(){return tokenValid(ACCESS_EXP_KEY)?(sessionStorage.getItem(ACCESS_TOKEN_KEY)||''):''}
+function masterToken(){return tokenValid(MASTER_EXP_KEY)?(sessionStorage.getItem(MASTER_TOKEN_KEY)||''):''}
+function clearAccess(){sessionStorage.removeItem(ACCESS_TOKEN_KEY);sessionStorage.removeItem(ACCESS_EXP_KEY);clearMaster()}
+function clearMaster(){sessionStorage.removeItem(MASTER_TOKEN_KEY);sessionStorage.removeItem(MASTER_EXP_KEY);updateAuthUI()}
+function saveToken(key,expKey,token,expiresAt){sessionStorage.setItem(key,token||'');sessionStorage.setItem(expKey,expiresAt||'')}
+
+const pendingBridge=new Map();
+window.addEventListener('message',function(ev){
+  const d=ev.data;if(!d||d.bridge!=='hospitalAdminShare-v05'||!d.requestId)return;
+  const p=pendingBridge.get(d.requestId);if(!p)return;
+  cleanupBridge_(d.requestId);p.resolve(d);
+});
+function cleanupBridge_(id){const p=pendingBridge.get(id);if(!p)return;clearTimeout(p.timer);if(p.form)p.form.remove();if(p.iframe)p.iframe.remove();pendingBridge.delete(id)}
+function apiRaw(action,payload={},access='',master=''){
+  const url=getApiUrl();if(!url)return Promise.reject(Object.assign(new Error('공용 서버 주소가 설정되지 않았습니다.'),{code:'NO_API'}));
+  return new Promise((resolve,reject)=>{
+    const requestId=(crypto.randomUUID?crypto.randomUUID():uuid());
+    const iframe=document.createElement('iframe');iframe.name='gas_'+requestId.replace(/-/g,'');iframe.style.display='none';
+    const form=document.createElement('form');form.method='POST';form.action=url;form.target=iframe.name;form.style.display='none';
+    const fields={requestId,action,payload:JSON.stringify(payload||{}),accessToken:access||'',masterToken:master||''};
+    Object.entries(fields).forEach(([k,v])=>{const i=document.createElement('input');i.type='hidden';i.name=k;i.value=v;form.appendChild(i)});
+    document.body.appendChild(iframe);document.body.appendChild(form);
+    const timer=setTimeout(()=>{cleanupBridge_(requestId);reject(Object.assign(new Error('공용 서버 응답 시간이 초과되었습니다. 서버 주소·배포 권한을 확인해 주세요.'),{code:'TIMEOUT'}));},25000);
+    pendingBridge.set(requestId,{resolve,reject,iframe,form,timer});
+    form.submit();
+  }).then(res=>{if(!res.ok){const er=Object.assign(new Error(res.error||'서버 작업 실패'),{code:res.code||'API_ERROR',response:res});throw er}return res});
+}
+
+async function loginSharedSystem(force=false){
+  if(!isRemoteMode()){alert('먼저 관리자에서 Apps Script /exec 주소를 설정해 주세요.');return false}
+  if(!force && accessToken())return true;
+  const pw=prompt('공유시스템 접속 비밀번호를 입력하세요.');if(pw===null)return false;
+  try{
+    setSyncState('busy','접속 인증 중');
+    const res=await apiRaw('login',{password:pw},'','');
+    saveToken(ACCESS_TOKEN_KEY,ACCESS_EXP_KEY,res.accessToken,res.expiresAt);
+    cacheRecords=(res.records||[]).map(normalizeRecord);
+    remoteConnected=true;lastServerTime=res.serverTime||'';setSyncState('ok','공용 서버 연결');renderAll();updateAuthUI();startAutoRefresh();return true;
+  }catch(e){remoteConnected=false;setSyncState('bad','인증 실패');alert(apiErrorText(e));return false}
+}
+
+async function ensureMaster(){
+  if(!isRemoteMode())return localRequireMaster();
+  if(masterToken())return true;
+  if(!accessToken() && !(await loginSharedSystem()))return false;
+  const pw=prompt('마스터 비밀번호를 입력하세요.\n수정·삭제·종결·복원·백업관리에 필요합니다.');if(pw===null)return false;
+  try{
+    const res=await apiRaw('unlockMaster',{password:pw},accessToken(),'');
+    saveToken(MASTER_TOKEN_KEY,MASTER_EXP_KEY,res.masterToken,res.expiresAt);updateAuthUI();return true;
+  }catch(e){clearMaster();alert(apiErrorText(e));return false}
+}
+
+async function callApi(action,payload={},needsMaster=false,retry=true){
+  if(!accessToken() && !(await loginSharedSystem()))throw Object.assign(new Error('접속 인증이 취소되었습니다.'),{code:'CANCEL'});
+  if(needsMaster && !(await ensureMaster()))throw Object.assign(new Error('마스터 인증이 취소되었습니다.'),{code:'CANCEL'});
+  try{return await apiRaw(action,{...payload,operatorName:operatorName()},accessToken(),needsMaster?masterToken():'')}
+  catch(e){
+    if(retry && e.code==='ACCESS_REQUIRED'){clearAccess();if(await loginSharedSystem(true))return callApi(action,payload,needsMaster,false)}
+    if(retry && e.code==='MASTER_REQUIRED'){clearMaster();if(await ensureMaster())return callApi(action,payload,needsMaster,false)}
+    throw e;
+  }
+}
+function apiErrorText(e){if(!e)return '알 수 없는 오류입니다.';if(e.code==='CONFLICT')return '다른 직원이 먼저 이 자료를 수정했습니다. 최신 목록을 다시 불러옵니다.';return e.message||String(e)}
+
+function setSyncState(mode,text){
+  const el=byId('syncChip');if(!el)return;el.textContent=(mode==='ok'?'☁️ ':mode==='busy'?'⏳ ':mode==='bad'?'⚠️ ':'💻 ')+text;el.className='chip '+(mode==='ok'?'ok':mode==='bad'?'warn':'');
+  const s=byId('serverState');if(s)s.textContent=text+(lastServerTime?` · 서버 ${fmt(lastServerTime)}`:'');
+}
+function updateConnectionUI(){
+  const u=byId('apiUrlInput');if(u)u.value=getApiUrl();const o=byId('operatorInput');if(o)o.value=operatorName();
+  if(isRemoteMode())setSyncState(remoteConnected?'ok':'busy',remoteConnected?'공용 서버 연결':'공용 서버 설정됨');else setSyncState('local','로컬 테스트 모드');
+  const mig=byId('localMigrationInfo');if(mig){const n=loadLocalData().records.length;mig.textContent=`현재 브라우저 로컬 자료 ${n}건 감지`}
+}
+async function saveConnectionSettings(){
+  const url=(byId('apiUrlInput').value||'').trim();const op=(byId('operatorInput').value||'').trim();
+  if(url && !/\/exec(?:\?.*)?$/.test(url)){alert('Apps Script 웹 앱의 /exec 주소를 입력해 주세요.');return}
+  if(url)localStorage.setItem(API_URL_KEY,url);else localStorage.removeItem(API_URL_KEY);
+  localStorage.setItem(OPERATOR_KEY,op);clearAccess();cacheRecords=[];remoteConnected=false;updateConnectionUI();
+  if(url){if(await testConnection())await loginSharedSystem(true)}else{loadCacheFromLocal();renderAll()}
+}
+async function testConnection(){
+  if(!isRemoteMode()){alert('공용 서버 주소를 먼저 설정해 주세요.');return false}
+  try{setSyncState('busy','서버 확인 중');const res=await apiRaw('ping');if(!res.initialized)throw new Error('백엔드에서 setupSystem()이 아직 실행되지 않았습니다.');setSyncState('ok',`서버 v${res.version} 응답 정상`);alert(`연결 정상 · 백엔드 v${res.version}`);return true}catch(e){setSyncState('bad','서버 연결 실패');alert(apiErrorText(e));return false}
+}
+async function logoutSharedSystem(){clearAccess();cacheRecords=[];remoteConnected=false;setSyncState('busy','로그아웃됨');renderAll();}
+function startAutoRefresh(){if(refreshTimer)clearInterval(refreshTimer);if(isRemoteMode())refreshTimer=setInterval(()=>{if(accessToken()&&!modalMode)refreshFromServer(true)},45000)}
+async function refreshFromServer(silent=false){
+  if(!isRemoteMode()){loadCacheFromLocal();renderAll();return}
+  if(!accessToken()){if(!silent)await loginSharedSystem();return}
+  try{if(!silent)setSyncState('busy','동기화 중');const res=await callApi('listRecords');cacheRecords=(res.records||[]).map(normalizeRecord);lastServerTime=res.serverTime||'';remoteConnected=true;setSyncState('ok','공용 서버 연결');renderAll()}
+  catch(e){remoteConnected=false;setSyncState('bad','동기화 실패');if(!silent)alert(apiErrorText(e))}
+}
+
+function normalizeRecord(r){const n={...r};if(!n.finalResolver)n.finalResolver=n.finalHandler||'';if(!n.closedAt&&n.status==='종결')n.closedAt=n.updatedAt||nowISO();delete n.finalHandler;delete n.status;n.version=Number(n.version||0);return n}
+function migrateOldData(){
+  const raw=localStorage.getItem(OLD_STORE_KEY);if(!raw)return null;try{const old=JSON.parse(raw);if(!Array.isArray(old))return null;return {records:old.map(r=>({id:r.id||uuid(),kind:'problem',name:r.name||'',reg:r.reg||'',ward:r.ward||'',doctor:r.doctor||'',dept:r.dept||'',problemType:'기타',owner:r.owner||'',finalResolver:r.finalResolver||r.finalHandler||'',issue:r.issue||'',plan:r.plan||'',other:r.other||'',createdAt:r.createdAt||nowISO(),updatedAt:r.updatedAt||nowISO(),closedAt:r.closedAt||(r.status==='종결'?(r.updatedAt||nowISO()):''),version:Number(r.version||1),updatedBy:''}))}}catch(e){return null}
+}
+function loadLocalData(){
+  const raw=localStorage.getItem(LOCAL_STORE_KEY);if(raw){try{const d=JSON.parse(raw);if(d&&Array.isArray(d.records))return {records:d.records.map(normalizeRecord)}}catch(e){}}
+  const m=migrateOldData();const init=m||clone(DEMO_DATA);saveLocalData(init);return init
+}
+function saveLocalData(d){localStorage.setItem(LOCAL_STORE_KEY,JSON.stringify({records:(d.records||[]).map(normalizeRecord)}))}
+function loadCacheFromLocal(){cacheRecords=loadLocalData().records.map(normalizeRecord);remoteConnected=false}
+function records(){return cacheRecords}
+function activeProblem(){return records().filter(r=>r.kind==='problem'&&!r.closedAt)}
+function activeVip(){return records().filter(r=>r.kind==='vip'&&!r.closedAt)}
+function archived(){return records().filter(r=>!!r.closedAt)}
+
+async function sha256(text){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+async function ensureLocalPassword(){if(!localStorage.getItem(LOCAL_PASS_KEY))localStorage.setItem(LOCAL_PASS_KEY,await sha256('1234'))}
+function localUnlocked(){return Number(sessionStorage.getItem(LOCAL_AUTH_KEY)||0)>Date.now()}
+async function localRequireMaster(){await ensureLocalPassword();if(localUnlocked())return true;const pw=prompt('로컬 테스트 모드 마스터 비밀번호를 입력하세요.');if(pw===null)return false;if(await sha256(pw)===localStorage.getItem(LOCAL_PASS_KEY)){sessionStorage.setItem(LOCAL_AUTH_KEY,String(Date.now()+AUTH_MINUTES*60000));updateAuthUI();return true}alert('마스터 비밀번호가 올바르지 않습니다.');return false}
+async function requireMaster(){return isRemoteMode()?ensureMaster():localRequireMaster()}
+function lockMaster(){if(isRemoteMode())clearMaster();else{sessionStorage.removeItem(LOCAL_AUTH_KEY);updateAuthUI()}}
+async function unlockMaster(){await requireMaster();updateAuthUI();if(isRemoteMode()&&masterToken())refreshBackupUI()}
+function updateAuthUI(){const unlocked=isRemoteMode()?!!masterToken():localUnlocked();const el=byId('authChip');if(el){el.textContent=unlocked?'🔓 마스터 권한 활성':'🔒 마스터 권한 잠김';el.className='chip '+(unlocked?'ok':'warn')}const s=byId('masterState');if(s)s.textContent=unlocked?`현재 활성 · ${AUTH_MINUTES}분 세션`:'현재 잠김'}
+
+function switchTab(tab){currentTab=tab;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));document.querySelectorAll('.tab-page').forEach(x=>x.classList.add('hidden'));byId('tab-'+tab).classList.remove('hidden');renderAll();if(tab==='admin'){updateConnectionUI();renderBackupUIBase()}}
+function typeClass(v){return v==='재정'?'t-fin':v==='분쟁'?'t-dispute':'t-other'}
+function fillSelect(id,values,firstLabel){const el=byId(id);if(!el)return;const cur=el.value;el.innerHTML=`<option value="">${firstLabel}</option>`+values.map(v=>`<option value="${escAttr(v)}">${esc(v)}</option>`).join('');el.value=values.includes(cur)?cur:''}
+function problemVisible(){const q=byId('pSearch').value.trim().toLowerCase(),type=byId('pTypeFilter').value,dept=byId('pDeptFilter').value;return activeProblem().filter(r=>{if(type&&r.problemType!==type)return false;if(dept&&r.dept!==dept)return false;const hay=`${r.name} ${r.reg} ${r.ward} ${r.doctor} ${r.dept} ${r.problemType} ${r.issue} ${r.plan} ${r.other} ${r.owner}`.toLowerCase();return !q||hay.includes(q)}).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))}
+function vipVisible(){const q=byId('vSearch').value.trim().toLowerCase(),cls=byId('vClassFilter').value,dept=byId('vDeptFilter').value;return activeVip().filter(r=>{if(cls&&r.vipClass!==cls)return false;if(dept&&r.dept!==dept)return false;const hay=`${r.name} ${r.reg} ${r.ward} ${r.doctor} ${r.dept} ${r.vipClass} ${r.request} ${r.caution} ${r.other} ${r.owner}`.toLowerCase();return !q||hay.includes(q)}).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))}
+function archiveVisible(){const q=byId('aSearch').value.trim().toLowerCase(),kind=byId('aKindFilter').value;return archived().filter(r=>{if(kind&&r.kind!==kind)return false;const main=r.kind==='problem'?`${r.issue} ${r.plan}`:`${r.request} ${r.caution}`;const hay=`${r.name} ${r.reg} ${r.ward} ${r.dept} ${r.owner} ${r.finalResolver} ${main}`.toLowerCase();return !q||hay.includes(q)}).sort((a,b)=>(b.closedAt||b.updatedAt||'').localeCompare(a.closedAt||a.updatedAt||''))}
+
+function renderAll(){
+  const p=activeProblem(),v=activeVip(),a=archived();
+  byId('problemTabCount').textContent=p.length;byId('vipTabCount').textContent=v.length;byId('archiveTabCount').textContent=a.length;
+  byId('pSumAll').innerHTML=`${p.length}<small>명</small>`;byId('pSumFin').innerHTML=`${p.filter(x=>x.problemType==='재정').length}<small>명</small>`;byId('pSumDispute').innerHTML=`${p.filter(x=>x.problemType==='분쟁').length}<small>명</small>`;byId('pSumOther').innerHTML=`${p.filter(x=>!['재정','분쟁'].includes(x.problemType)).length}<small>명</small>`;
+  byId('vSumAll').innerHTML=`${v.length}<small>명</small>`;byId('vSumOrg').innerHTML=`${v.filter(x=>x.vipClass==='재단·병원 주요인사').length}<small>명</small>`;byId('vSumExternal').innerHTML=`${v.filter(x=>x.vipClass==='외부기관').length}<small>명</small>`;byId('vSumToday').innerHTML=`${v.filter(x=>localDateKey(x.updatedAt)===todayKey()).length}<small>명</small>`;
+  fillSelect('pDeptFilter',[...new Set(p.map(x=>x.dept).filter(Boolean))].sort(),'진료과 전체');fillSelect('vDeptFilter',[...new Set(v.map(x=>x.dept).filter(Boolean))].sort(),'진료과 전체');fillSelect('vClassFilter',[...new Set(v.map(x=>x.vipClass).filter(Boolean))].sort(),'VIP 구분 전체');
+  const pi=problemVisible(),vi=vipVisible(),ai=archiveVisible();byId('pVisibleCount').textContent=pi.length;byId('vVisibleCount').textContent=vi.length;byId('aVisibleCount').textContent=ai.length;
+  byId('problemTbody').innerHTML=pi.map(problemRow).join('');byId('vipTbody').innerHTML=vi.map(vipRow).join('');byId('archiveTbody').innerHTML=ai.map(archiveRow).join('');
+  byId('problemEmpty').classList.toggle('hidden',pi.length>0);byId('vipEmpty').classList.toggle('hidden',vi.length>0);byId('archiveEmpty').classList.toggle('hidden',ai.length>0);updateAuthUI();
+}
+function versionMeta(r){return `<span class="meta">수정 ${fmt(r.updatedAt)}${r.updatedBy?` · ${esc(r.updatedBy)}`:''}${r.version?` · v${r.version}`:''}</span>`}
+function problemRow(r,i){return `<tr><td class="c-no">${i+1}</td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td><span class="two">${esc(r.doctor||'-')}</span></td><td>${esc(r.dept||'-')}</td><td><span class="pill ${typeClass(r.problemType)}">${esc(r.problemType||'기타')}</span></td><td title="${escAttr(r.issue)}"><span class="three">${esc(r.issue||'-')}</span>${versionMeta(r)}</td><td title="${escAttr(r.plan)}"><span class="three">${esc(r.plan||'-')}</span></td><td title="${escAttr(r.other)}"><span class="two">${esc(r.other||'-')}</span></td><td><span class="two">${esc(r.owner||'-')}</span></td><td class="actions"><button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="closeRecord('${escAttr(r.id)}')">종결</button><button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button></td></tr>`}
+function vipRow(r,i){return `<tr><td class="c-no">${i+1}</td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td><span class="two">${esc(r.doctor||'-')}</span></td><td>${esc(r.dept||'-')}</td><td><span class="pill t-vip">${esc(r.vipClass||'기타')}</span></td><td title="${escAttr(r.request)}"><span class="three">${esc(r.request||'-')}</span>${versionMeta(r)}</td><td title="${escAttr(r.caution)}"><span class="three">${esc(r.caution||'-')}</span></td><td title="${escAttr(r.other)}"><span class="two">${esc(r.other||'-')}</span></td><td><span class="two">${esc(r.owner||'-')}</span></td><td class="actions"><button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="closeRecord('${escAttr(r.id)}')">종결</button><button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button></td></tr>`}
+function archiveRow(r,i){const main=r.kind==='problem'?r.issue:r.request;const plan=r.kind==='problem'?r.plan:r.caution;return `<tr><td class="c-no">${i+1}</td><td><span class="pill ${r.kind==='vip'?'t-vip':'t-other'}">${r.kind==='problem'?'문제환자':'VIP'}</span></td><td><div class="patient-name">${esc(r.name)}</div><div class="reg">${esc(r.reg||'-')}</div></td><td>${esc(r.ward||'-')}</td><td>${esc(r.dept||'-')}</td><td title="${escAttr(main)}"><span class="three">${esc(main||'-')}</span></td><td title="${escAttr(plan)}"><span class="three">${esc(plan||'-')}</span></td><td>${esc(r.owner||'-')}</td><td><span class="final-resolver">${esc(r.finalResolver||'-')}</span></td><td>${fmt(r.closedAt)}</td><td class="actions"><button class="secondary" onclick="editRecord('${escAttr(r.id)}')">수정</button><button class="ghost" onclick="restoreRecord('${escAttr(r.id)}')">복원</button><button class="danger" onclick="deleteRecord('${escAttr(r.id)}')">삭제</button></td></tr>`}
+
+function problemForm(r={}){return `<div class="form-grid">
+  <div><label class="required">환자명</label><input id="m_name" value="${escAttr(r.name||'')}" placeholder="예: 홍길동"></div>
+  <div><label class="required">등록번호</label><input id="m_reg" value="${escAttr(r.reg||'')}" placeholder="예: 012345678"></div>
+  <div><label>병실</label><input id="m_ward" value="${escAttr(r.ward||'')}" placeholder="예: 10병동 1001호"></div>
+  <div><label>담당교수</label><input id="m_doctor" value="${escAttr(r.doctor||'')}" placeholder="예: 김OO 교수"></div>
+  <div><label>진료과</label><input id="m_dept" value="${escAttr(r.dept||'')}" placeholder="예: GI"></div>
+  <div><label class="required">문제유형</label><select id="m_problemType">${['재정','분쟁','기타'].map(v=>`<option ${r.problemType===v?'selected':''}>${v}</option>`).join('')}</select></div>
+  <div class="span3"><label>담당자</label><input id="m_owner" value="${escAttr(r.owner||'')}" placeholder="예: 원무팀 김OO"></div>
+  <div class="span2"><label class="required">문제 내용</label><textarea id="m_issue" placeholder="야간·휴일 근무자가 알아야 할 핵심 문제">${esc(r.issue||'')}</textarea></div>
+  <div class="span3"><label>퇴원·사망 시 대응 방안</label><textarea id="m_plan" placeholder="퇴원·사망 발생 시 처리 순서, 연락 대상, 수납·서류 주의사항 등">${esc(r.plan||'')}</textarea></div>
+  <div class="full"><label>기타</label><textarea id="m_other" placeholder="보호자 성향, 연락 필요 부서, 약속된 내용 등">${esc(r.other||'')}</textarea></div>
+  ${r.closedAt?`<div class="full"><label class="required">최종 해결자</label><input id="m_finalResolver" value="${escAttr(r.finalResolver||'')}" placeholder="예: 원무팀 김OO"></div>`:''}
+</div>`}
+function vipForm(r={}){return `<div class="form-grid">
+  <div><label class="required">환자명</label><input id="m_name" value="${escAttr(r.name||'')}" placeholder="예: 홍길동"></div>
+  <div><label class="required">등록번호</label><input id="m_reg" value="${escAttr(r.reg||'')}" placeholder="예: 012345678"></div>
+  <div><label>병실</label><input id="m_ward" value="${escAttr(r.ward||'')}" placeholder="예: 10병동 1001호"></div>
+  <div><label>담당교수</label><input id="m_doctor" value="${escAttr(r.doctor||'')}" placeholder="예: 김OO 교수"></div>
+  <div><label>진료과</label><input id="m_dept" value="${escAttr(r.dept||'')}" placeholder="예: GI"></div>
+  <div><label class="required">VIP 구분</label><select id="m_vipClass">${['재단·병원 주요인사','외부기관','교직원·지인','기타'].map(v=>`<option ${r.vipClass===v?'selected':''}>${v}</option>`).join('')}</select></div>
+  <div class="span3"><label>담당자</label><input id="m_owner" value="${escAttr(r.owner||'')}" placeholder="예: 원무팀 김OO"></div>
+  <div class="span2"><label class="required">요청사항</label><textarea id="m_request" placeholder="VIP 관련 요청사항을 입력">${esc(r.request||'')}</textarea></div>
+  <div class="span3"><label>주의·대응사항</label><textarea id="m_caution" placeholder="야간·휴일 근무자가 주의할 사항, 연락 순서 등">${esc(r.caution||'')}</textarea></div>
+  <div class="full"><label>기타</label><textarea id="m_other" placeholder="기타 공유사항">${esc(r.other||'')}</textarea></div>
+  ${r.closedAt?`<div class="full"><label class="required">최종 해결자</label><input id="m_finalResolver" value="${escAttr(r.finalResolver||'')}" placeholder="예: 원무팀 김OO"></div>`:''}
+</div>`}
+function openProblemModal(){if(isRemoteMode()&&!accessToken()){loginSharedSystem().then(ok=>{if(ok)openProblemModal()});return}modalMode='new';modalKind='problem';editingId=null;byId('modalTitle').textContent='문제환자 등록';byId('modalCaption').textContent='신규 등록은 마스터 비밀번호 없이 가능합니다.';byId('modalBody').innerHTML=problemForm({problemType:'재정'});byId('modalSaveBtn').textContent='등록';byId('recordModal').classList.add('show')}
+function openVipModal(){if(isRemoteMode()&&!accessToken()){loginSharedSystem().then(ok=>{if(ok)openVipModal()});return}modalMode='new';modalKind='vip';editingId=null;byId('modalTitle').textContent='VIP 등록';byId('modalCaption').textContent='VIP 자료는 문제환자와 별도 목록으로 관리됩니다.';byId('modalBody').innerHTML=vipForm({vipClass:'재단·병원 주요인사'});byId('modalSaveBtn').textContent='등록';byId('recordModal').classList.add('show')}
+async function editRecord(id){if(!(await requireMaster()))return;const r=records().find(x=>x.id===id);if(!r)return;modalMode='edit';modalKind=r.kind;editingId=id;byId('modalTitle').textContent=(r.kind==='problem'?'문제환자':'VIP')+' 수정';byId('modalCaption').textContent=r.closedAt?'종결 자료 수정 · 최종 해결자 변경 가능':`기존 자료 변경 · 현재 v${r.version||0}`;byId('modalBody').innerHTML=r.kind==='problem'?problemForm(r):vipForm(r);byId('modalSaveBtn').textContent='수정내용 저장';byId('recordModal').classList.add('show')}
+function closeModal(){byId('recordModal').classList.remove('show');modalMode=null;modalKind=null;editingId=null}
+function backdropClose(e){if(e.target===byId('recordModal'))closeModal()}
+function val(id){const el=byId(id);return el?el.value.trim():''}
+function readModal(){const base={name:val('m_name'),reg:val('m_reg'),ward:val('m_ward'),doctor:val('m_doctor'),dept:val('m_dept'),owner:val('m_owner'),other:val('m_other')};if(modalKind==='problem')return {...base,problemType:val('m_problemType'),issue:val('m_issue'),plan:val('m_plan'),finalResolver:val('m_finalResolver')};return {...base,vipClass:val('m_vipClass'),request:val('m_request'),caution:val('m_caution'),finalResolver:val('m_finalResolver')}}
+async function saveModalRecord(){
+  const r=readModal(),main=modalKind==='problem'?r.issue:r.request;if(!r.name||!r.reg||!main){alert('환자명, 등록번호, 주요 내용은 반드시 입력해 주세요.');return}
+  try{
+    if(isRemoteMode()){
+      if(modalMode==='new')await callApi('createRecord',{record:{...r,kind:modalKind}},false);
+      else{const old=records().find(x=>x.id===editingId);if(!old)return;if(old.closedAt&&!r.finalResolver){alert('종결 자료는 최종 해결자를 입력해 주세요.');return}await callApi('updateRecord',{record:{...old,...r,id:old.id,kind:old.kind},expectedVersion:old.version},true)}
+      closeModal();await refreshFromServer();
+    }else{
+      const list=records().slice();if(modalMode==='new')list.push({...r,id:uuid(),kind:modalKind,finalResolver:'',createdAt:nowISO(),updatedAt:nowISO(),closedAt:'',version:1,updatedBy:operatorName()});else{const i=list.findIndex(x=>x.id===editingId);if(i<0)return;const old=list[i];if(old.closedAt&&!r.finalResolver){alert('종결 자료는 최종 해결자를 입력해 주세요.');return}list[i]={...old,...r,updatedAt:nowISO(),version:Number(old.version||0)+1,updatedBy:operatorName()}}saveLocalData({records:list});cacheRecords=list;localEnsureDailyBackup();closeModal();renderAll();
+    }
+  }catch(e){if(e.code==='CONFLICT'){closeModal();await refreshFromServer();alert(apiErrorText(e));}else if(e.code!=='CANCEL')alert(apiErrorText(e))}
+}
+async function closeRecord(id){if(!(await requireMaster()))return;const r=records().find(x=>x.id===id);if(!r)return;const handler=prompt('최종 해결자를 입력하세요.\n예: 원무팀 김OO');if(handler===null)return;if(!handler.trim()){alert('종결하려면 최종 해결자를 입력해야 합니다.');return}if(!confirm(`${r.name} 환자를 종결보관함으로 이동할까요?`))return;try{if(isRemoteMode()){await callApi('closeRecord',{id:r.id,expectedVersion:r.version,finalResolver:handler.trim()},true);await refreshFromServer()}else{r.finalResolver=handler.trim();r.closedAt=nowISO();r.updatedAt=r.closedAt;r.version=Number(r.version||0)+1;r.updatedBy=operatorName();saveLocalData({records:records()});localEnsureDailyBackup();renderAll()}}catch(e){if(e.code==='CONFLICT')await refreshFromServer();if(e.code!=='CANCEL')alert(apiErrorText(e))}}
+async function restoreRecord(id){if(!(await requireMaster()))return;const r=records().find(x=>x.id===id);if(!r)return;if(!confirm(`${r.name} 환자를 현재 목록으로 복원할까요?`))return;try{if(isRemoteMode()){await callApi('restoreRecord',{id:r.id,expectedVersion:r.version},true);await refreshFromServer()}else{r.closedAt='';r.finalResolver='';r.updatedAt=nowISO();r.version=Number(r.version||0)+1;r.updatedBy=operatorName();saveLocalData({records:records()});localEnsureDailyBackup();renderAll()}}catch(e){if(e.code==='CONFLICT')await refreshFromServer();if(e.code!=='CANCEL')alert(apiErrorText(e))}}
+async function deleteRecord(id){if(!(await requireMaster()))return;const r=records().find(x=>x.id===id);if(!r)return;if(!confirm(`${r.name} 자료를 완전히 삭제할까요?\n삭제 전 일일백업/안전백업에서 복원할 수 있습니다.`))return;try{if(isRemoteMode()){await callApi('deleteRecord',{id:r.id,expectedVersion:r.version},true);await refreshFromServer()}else{cacheRecords=records().filter(x=>x.id!==id);saveLocalData({records:cacheRecords});localEnsureDailyBackup();renderAll()}}catch(e){if(e.code==='CONFLICT')await refreshFromServer();if(e.code!=='CANCEL')alert(apiErrorText(e))}}
+
+function resetProblemFilters(){byId('pSearch').value='';byId('pTypeFilter').value='';byId('pDeptFilter').value='';renderAll()}
+function resetVipFilters(){byId('vSearch').value='';byId('vClassFilter').value='';byId('vDeptFilter').value='';renderAll()}
+function resetArchiveFilters(){byId('aSearch').value='';byId('aKindFilter').value='';renderAll()}
+function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
+function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+function exportJSON(){downloadBlob(new Blob([JSON.stringify({exportedAt:nowISO(),mode:isRemoteMode()?'remote':'local',records:records()},null,2)],{type:'application/json'}),`원무팀_문제환자_VIP_백업_${dateStamp()}.json`)}
+async function importJSON(ev){const file=ev.target.files[0];if(!file)return;try{const text=await file.text();const d=JSON.parse(text);const list=(Array.isArray(d)?d:(d&&Array.isArray(d.records)?d.records:null));if(!list)throw new Error('지원하지 않는 백업 형식입니다.');let mode='replace';if(!confirm(`${list.length}건을 서버/현재 목록에 덮어쓸까요?\n[확인] 덮어쓰기 / [취소] 다음 선택`)){if(confirm('기존 자료에 추가로 가져올까요?'))mode='append';else return}if(isRemoteMode()){if(!(await requireMaster()))return;await callApi('importRecords',{records:list,mode},true);await refreshFromServer();alert('공용 서버로 가져오기 완료')}else{const merged=mode==='append'?records().concat(list):list;cacheRecords=merged.map(normalizeRecord);saveLocalData({records:cacheRecords});localEnsureDailyBackup();renderAll();alert('로컬 가져오기 완료')}}catch(e){if(e.code!=='CANCEL')alert('백업 파일을 읽을 수 없습니다: '+apiErrorText(e))}finally{ev.target.value=''}}
+function exportCSV(kind){let rows,name;if(kind==='problem'){rows=[['환자명','등록번호','병실','담당교수','진료과','문제유형','문제내용','퇴원·사망 대응','기타','담당자','최근수정'],...activeProblem().map(r=>[r.name,r.reg,r.ward,r.doctor,r.dept,r.problemType,r.issue,r.plan,r.other,r.owner,fmt(r.updatedAt)])];name='문제환자'}else if(kind==='vip'){rows=[['환자명','등록번호','병실','담당교수','진료과','VIP구분','요청사항','주의·대응사항','기타','담당자','최근수정'],...activeVip().map(r=>[r.name,r.reg,r.ward,r.doctor,r.dept,r.vipClass,r.request,r.caution,r.other,r.owner,fmt(r.updatedAt)])];name='VIP'}else{rows=[['구분','환자명','등록번호','병실','진료과','주요내용','대응·주의사항','담당자','최종 해결자','종결일'],...archived().map(r=>[r.kind==='problem'?'문제환자':'VIP',r.name,r.reg,r.ward,r.dept,r.kind==='problem'?r.issue:r.request,r.kind==='problem'?r.plan:r.caution,r.owner,r.finalResolver,fmt(r.closedAt)])];name='종결보관함'}const csv='\ufeff'+rows.map(row=>row.map(csvCell).join(',')).join('\r\n');downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),`${name}_${dateStamp()}.csv`)}
+function printCurrent(kind){const items=kind==='problem'?problemVisible():(kind==='vip'?vipVisible():archiveVisible());if(!items.length){alert('인쇄할 자료가 없습니다.');return}const title=kind==='problem'?'문제환자 공유 현황':kind==='vip'?'VIP 관리 현황':'종결보관함';const rows=items.map((r,i)=>{const k=r.kind==='problem'?'문제환자':'VIP',type=r.kind==='problem'?(r.problemType||'기타'):(r.vipClass||'기타'),main=r.kind==='problem'?r.issue:r.request,plan=r.kind==='problem'?r.plan:r.caution;return `<tr><td>${i+1}</td>${kind==='archive'?`<td>${k}</td>`:''}<td><b>${esc(r.name)}</b><br><span>${esc(r.reg)}</span></td><td>${esc(r.ward||'-')}</td><td>${esc(r.doctor||'-')}</td><td>${esc(r.dept||'-')}</td><td>${esc(type)}</td><td>${esc(main||'-')}</td><td>${esc(plan||'-')}</td><td>${esc(r.other||'-')}</td><td>${esc(r.owner||'-')}</td>${kind==='archive'?`<td>${esc(r.finalResolver||'-')}</td><td>${fmt(r.closedAt)}</td>`:''}</tr>`}).join('');const head=kind==='archive'?'<th>No.</th><th>구분</th><th>환자/등록번호</th><th>병실</th><th>교수</th><th>과</th><th>유형</th><th>주요 내용</th><th>대응·주의</th><th>기타</th><th>담당자</th><th>최종 해결자</th><th>종결일</th>':'<th>No.</th><th>환자/등록번호</th><th>병실</th><th>교수</th><th>과</th><th>유형</th><th>주요 내용</th><th>대응·주의</th><th>기타</th><th>담당자</th>';const w=window.open('','_blank');w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${title}</title><style>@page{size:A4 landscape;margin:8mm}body{font-family:Arial,"맑은 고딕",sans-serif;color:#172033;margin:0}h1{font-size:17px;margin:0 0 3px}.sub{font-size:8.5px;color:#667085;margin-bottom:9px}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #dfe5ed;padding:4px 5px;vertical-align:top;font-size:7px;line-height:1.32;word-break:keep-all;overflow-wrap:anywhere}th{background:#f5f7fa;color:#596579;text-align:left}td span{color:#7d8999;font-size:6.5px}</style></head><body><h1>${title}</h1><div class="sub">출력 ${new Date().toLocaleString('ko-KR')} · 현재 필터 결과 ${items.length}명</div><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></body></html>`);w.document.close();setTimeout(()=>w.print(),250)}
+
+function renderBackupUIBase(){const host=byId('dailyBackupList'),sum=byId('dailyBackupSummary');if(!host||!sum)return;if(isRemoteMode()){sum.textContent=masterToken()?'공용 서버 백업 목록을 불러오세요.':'백업 조회·복원은 마스터 권한이 필요합니다.';host.innerHTML='<div class="backup-empty">마스터 권한을 연 뒤 “백업 목록 새로고침”을 누르세요.</div>'}else renderLocalBackupUI()}
+async function refreshBackupUI(){if(!isRemoteMode()){renderLocalBackupUI();return}if(!(await ensureMaster()))return;try{const res=await callApi('listBackups',{},true);backupCache=res.backups||[];renderServerBackups()}catch(e){if(e.code!=='CANCEL')alert(apiErrorText(e))}}
+function renderServerBackups(){const host=byId('dailyBackupList'),sum=byId('dailyBackupSummary');sum.textContent=backupCache.length?`공용 서버 백업 ${backupCache.length}개 · 일일백업 최근 ${LOCAL_BACKUP_RETENTION}일 보관`:'공용 서버 백업이 없습니다.';if(!backupCache.length){host.innerHTML='<div class="backup-empty">저장된 공용 백업이 없습니다.</div>';return}host.innerHTML=backupCache.slice(0,30).map(b=>`<div class="backup-row"><div><div class="backup-date">${esc(b.label||b.snapshotId)}</div><div class="backup-meta">${b.type==='daily'?'00:00 기준':'수동'} · ${Number(b.count||0)}건 · 생성 ${fmt(b.createdAt)}${b.createdBy?` · ${esc(b.createdBy)}`:''}</div></div><div class="row"><button class="secondary" onclick="downloadServerBackup('${escAttr(b.snapshotId)}')">다운로드</button><button class="ghost" onclick="restoreServerBackup('${escAttr(b.snapshotId)}')">복원</button></div><span class="small">${b.type==='daily'?'DAILY':'SAFE'}</span></div>`).join('')}
+async function createManualBackup(){if(isRemoteMode()){if(!(await ensureMaster()))return;try{const res=await callApi('createBackup',{},true);backupCache=res.backups||[];renderServerBackups();alert('공용 서버에 현재 상태 안전백업을 생성했습니다.')}catch(e){if(e.code!=='CANCEL')alert(apiErrorText(e))}}else{localSnapshot(todayKey(),'수동');alert('로컬 백업을 생성했습니다.')}}
+async function downloadServerBackup(id){if(!(await ensureMaster()))return;try{const res=await callApi('getBackup',{snapshotId:id},true);const b=res.backup;if(!b)throw new Error('백업을 찾을 수 없습니다.');downloadBlob(new Blob([JSON.stringify(b,null,2)],{type:'application/json'}),`원무팀_공용백업_${id.replace(/[^a-zA-Z0-9_-]/g,'_')}.json`)}catch(e){if(e.code!=='CANCEL')alert(apiErrorText(e))}}
+async function restoreServerBackup(id){if(!(await ensureMaster()))return;const b=backupCache.find(x=>x.snapshotId===id);if(!confirm(`${b?.label||id} 백업으로 공용 데이터를 전체 복원할까요?\n복원 직전 서버가 안전백업을 한 번 더 생성합니다.`))return;try{const res=await callApi('restoreBackup',{snapshotId:id},true);cacheRecords=(res.records||[]).map(normalizeRecord);renderAll();await refreshBackupUI();alert('공용 데이터 복원이 완료되었습니다.')}catch(e){if(e.code!=='CANCEL')alert(apiErrorText(e))}}
+
+function loadLocalBackups(){try{const a=JSON.parse(localStorage.getItem(LOCAL_BACKUP_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+function saveLocalBackups(a){localStorage.setItem(LOCAL_BACKUP_KEY,JSON.stringify(a.slice(0,LOCAL_BACKUP_RETENTION)))}
+function localLastBackup(){try{return JSON.parse(localStorage.getItem(LOCAL_BACKUP_META_KEY)||'{}').lastDate||''}catch(e){return ''}}
+function localSnapshot(date,source='자동'){const a=loadLocalBackups(),p={date,createdAt:nowISO(),source,records:clone(records())},i=a.findIndex(x=>x.date===date);if(i>=0)a[i]=p;else a.unshift(p);a.sort((x,y)=>(y.date||'').localeCompare(x.date||''));saveLocalBackups(a);localStorage.setItem(LOCAL_BACKUP_META_KEY,JSON.stringify({lastDate:date,updatedAt:nowISO()}));renderLocalBackupUI();return p}
+function localEnsureDailyBackup(){if(localLastBackup()!==todayKey())localSnapshot(todayKey(),'00:00 기준 자동')}
+function renderLocalBackupUI(){const a=loadLocalBackups(),host=byId('dailyBackupList'),sum=byId('dailyBackupSummary');if(!host||!sum)return;sum.textContent=a.length?`로컬 백업 ${a.length}/${LOCAL_BACKUP_RETENTION}일 · 최신 ${a[0].date}`:'저장된 로컬 백업이 없습니다.';host.innerHTML=a.length?a.slice(0,10).map(b=>`<div class="backup-row"><div><div class="backup-date">${esc(b.date)} 00:00</div><div class="backup-meta">${esc(b.source)} · ${b.records.length}건 · ${fmt(b.createdAt)}</div></div><div class="row"><button class="secondary" onclick="downloadLocalBackup('${escAttr(b.date)}')">다운로드</button></div><span class="small">LOCAL</span></div>`).join(''):'<div class="backup-empty">저장된 로컬 백업이 없습니다.</div>'}
+function downloadLocalBackup(date){const b=loadLocalBackups().find(x=>x.date===date);if(b)downloadBlob(new Blob([JSON.stringify(b,null,2)],{type:'application/json'}),`원무팀_로컬백업_${date.replace(/-/g,'')}.json`)}
+
+async function migrateLocalToServer(){if(!isRemoteMode()){alert('공용 서버를 먼저 연결해 주세요.');return}if(!(await ensureMaster()))return;const local=loadLocalData().records;if(!local.length){alert('이관할 로컬 자료가 없습니다.');return}if(!confirm(`이 브라우저의 로컬 자료 ${local.length}건을 공용 서버로 이관할까요?\n\n주의: 데모자료가 포함되어 있다면 먼저 확인하세요.`))return;const mode=confirm('현재 공용 서버 자료에 추가할까요?\n[확인] 추가 / [취소] 서버 자료를 로컬자료로 덮어쓰기')?'append':'replace';try{const res=await callApi('importRecords',{records:local,mode},true);cacheRecords=(res.records||[]).map(normalizeRecord);renderAll();alert('공용 서버 이관이 완료되었습니다.')}catch(e){if(e.code!=='CANCEL')alert(apiErrorText(e))}}
+
+async function changeAccessPassword(){if(!isRemoteMode()){alert('공용 서버 연결 후 사용할 기능입니다.');return}if(!(await ensureMaster()))return;const a=prompt('새 접속 비밀번호를 입력하세요. (6자 이상)');if(a===null)return;if(a.length<6){alert('6자 이상으로 설정해 주세요.');return}const b=prompt('새 접속 비밀번호를 한 번 더 입력하세요.');if(a!==b){alert('비밀번호가 일치하지 않습니다.');return}try{await callApi('changeAccessPassword',{newPassword:a},true);clearAccess();alert('접속 비밀번호를 변경했습니다. 다시 로그인해 주세요.');await loginSharedSystem(true)}catch(e){if(e.code!=='CANCEL')alert(apiErrorText(e))}}
+async function changeMasterPassword(){if(isRemoteMode()){if(!(await ensureMaster()))return;const a=prompt('새 마스터 비밀번호를 입력하세요. (6자 이상)');if(a===null)return;if(a.length<6){alert('6자 이상으로 설정해 주세요.');return}const b=prompt('새 마스터 비밀번호를 한 번 더 입력하세요.');if(a!==b){alert('비밀번호가 일치하지 않습니다.');return}try{await callApi('changeMasterPassword',{newPassword:a},true);clearMaster();alert('마스터 비밀번호를 변경했습니다.')}catch(e){if(e.code!=='CANCEL')alert(apiErrorText(e))}}else{if(!(await localRequireMaster()))return;const a=prompt('새 로컬 마스터 비밀번호를 입력하세요.');if(a===null||a.length<4)return;const b=prompt('한 번 더 입력하세요.');if(a!==b){alert('일치하지 않습니다.');return}localStorage.setItem(LOCAL_PASS_KEY,await sha256(a));lockMaster();alert('로컬 마스터 비밀번호를 변경했습니다.')}}
+
+async function init(){
+  await ensureLocalPassword();updateConnectionUI();updateAuthUI();
+  if(isRemoteMode()){
+    try{const ping=await apiRaw('ping');if(!ping.initialized)throw new Error('Apps Script에서 setupSystem()을 먼저 실행해 주세요.');setSyncState('busy','접속 대기');if(accessToken()){await refreshFromServer()}else{const ok=await loginSharedSystem();if(!ok){cacheRecords=[];renderAll()}}}catch(e){setSyncState('bad','서버 연결 실패');cacheRecords=[];renderAll();console.error(e)}
+  }else{loadCacheFromLocal();localEnsureDailyBackup();renderAll();}
+  startAutoRefresh();
+}
+init();
+
+</script>
+</body>
+</html>
